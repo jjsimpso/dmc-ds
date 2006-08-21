@@ -103,7 +103,8 @@ void writeGfxNdx(GfxDat *gfxdat, char *filename){
 
 /*
   Utility function to get the next nibble out of a file.
-  
+  Used by the C4 image algorithm.
+
   Requires two variables to be used to maintain state, since filesystem
   reads must be at least one byte.
 */
