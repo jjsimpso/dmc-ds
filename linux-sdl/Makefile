@@ -6,16 +6,18 @@ CC = gcc
 CFLAGS = $(COMPILERFLAGS) $(INCLUDE)
 LIBRARIES = -rdynamic -ldl -lXext -lX11 -lm -lpthread -lSDL -lXmu -lXext -lXi -lSDL_image
 
-OBJS = dungeon.o data.o draw.o actions.o main.o
-TESTOBJS = dungeon.o data.o draw.o actions.o testmain.o
+OBJS = dungeon.o data.o draw.o actions.o
+TDMC_OBJS = $(OBJS) testmain.o
+DMC_OBJS = $(OBJS) main.o
 
 all : dmc tdmc
-dmc : $(OBJS)
-	$(CC) $(CFLAGS) -o dmc $(LIBDIR) $(OBJS) $(LIBRARIES)
-tdmc : $(TESTOBJS)
-	$(CC) $(CFLAGS) -o tdmc $(LIBDIR) $(TESTOBJS) $(LIBRARIES)
+dmc : $(DMC_OBJS)
+	$(CC) $(CFLAGS) -o dmc $(LIBDIR) $(DMC_OBJS) $(LIBRARIES)
+tdmc : $(TDMC_OBJS)
+	$(CC) $(CFLAGS) -o tdmc $(LIBDIR) $(TDMC_OBJS) $(LIBRARIES)
 tgfx : graphics.o
 	$(CC) $(CFLAGS) -o tgfx $(LIBDIR) graphics.o $(LIBRARIES)
 clean :
 	rm *.o
 	rm dmc
+
