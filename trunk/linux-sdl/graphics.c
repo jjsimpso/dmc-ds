@@ -135,17 +135,17 @@ Uint8 readNextNibble(Uint8 *byte, int *flag, FILE *file){
 
   if(*flag == 0){
     fread(byte, 1, 1, file);
-    nibble = *byte & 0x0f;
-    *byte = *byte >> 4;
+    nibble = *byte & 0xf0;
+    *byte = *byte << 4;
     *flag = 1;
   }
   else if(*flag == 1){
-    nibble = *byte & 0x0f;
-    *byte = *byte >> 4;
+    nibble = *byte & 0xf0;
+    *byte = 0;
     *flag = 0;
   }
 
-  return nibble;
+  return (nibble >> 4);
 }
 
 void addPixels(Uint8 color, Uint8 num, Uint8 **dest){
@@ -154,31 +154,37 @@ void addPixels(Uint8 color, Uint8 num, Uint8 **dest){
 }
 
 C4Img *loadC4Img(FILE *gfxdat, FILE *gfxndx, int file_num){
-  int offset, tmp, numpix, num, i;
+  int offset, end, tmp, numpix, num, i;
   int readState = 0;
   Uint8 byte, ctl, nib[7], color;
+  Uint8 fourBitPalMap[16];
   Uint8 *pixoff, *prevline;
   C4Img *img;
-
+  
   img = (C4Img *) malloc(sizeof(C4Img));
-
-  /* get offset from gfxndx */
+  
+  /* get offset and end from gfxndx */
   fseek(gfxndx, file_num * 4, SEEK_SET);
   fread(&offset, 4, 1, gfxndx);
-  
+  fread(&end, 4, 1, gfxndx);
+
+  /* read palatte data from end of image data */
+  fseek(gfxdat, end - 16, SEEK_SET);
+  fread(&fourBitPalMap, 1, 16, gfxdat);
+
   /* read header data from gfxdat */
   fseek(gfxdat, offset, SEEK_SET);
   fread(&img->w, 2, 1, gfxdat);
   fread(&img->h, 2, 1, gfxdat);
   fread(&tmp, 3, 1, gfxdat);
-
+  
   img->pal[0] = (tmp & 0xf0) >> 4;
   img->pal[1] =  tmp & 0x0f;
   img->pal[2] = (tmp & 0xf000) >> 12;
   img->pal[3] = (tmp & 0x0f00) >> 8;
   img->pal[4] = (tmp & 0xf00000) >> 20;
   img->pal[5] = (tmp & 0x0f0000) >> 16;
-
+  
   /* print out the header info */
   fprintf(stdout, "off = %d\n", offset);
   fprintf(stdout, "w = %d\n", img->w);
@@ -186,25 +192,41 @@ C4Img *loadC4Img(FILE *gfxdat, FILE *gfxndx, int file_num){
   for(i = 0; i < 6; i++){
     fprintf(stdout, "pal[%d] = %d\n", i, img->pal[i]);
   }
-
-  img->pal[0] = FourBitPalMap[img->pal[0]];
-  img->pal[1] = FourBitPalMap[img->pal[1]];
-  img->pal[2] = FourBitPalMap[img->pal[2]];
-  img->pal[3] = FourBitPalMap[img->pal[3]];
-  img->pal[4] = FourBitPalMap[img->pal[4]];
-  img->pal[5] = FourBitPalMap[img->pal[5]];
+  
+  img->pal[0] = fourBitPalMap[img->pal[0]];
+  img->pal[1] = fourBitPalMap[img->pal[1]];
+  img->pal[2] = fourBitPalMap[img->pal[2]];
+  img->pal[3] = fourBitPalMap[img->pal[3]];
+  img->pal[4] = fourBitPalMap[img->pal[4]];
+  img->pal[5] = fourBitPalMap[img->pal[5]];
   
   numpix = img->w * img->h;
   img->pixels = (Uint8 *) malloc(numpix);
-
+  
   pixoff = img->pixels;
   while(numpix > 0){
     ctl = readNextNibble(&byte, &readState, gfxdat);
 
-    // add several pixels
+    /* Determine color to add */
+    if( (ctl & 0x7) <= 5){
+      color = img->pal[ctl & 0x7];
+      //printf("color %d at (%d,%d)\n", (ctl & 0x7), ((pixoff - img->pixels) % img->w), 
+      //       ((pixoff - img->pixels) / img->w));
+    }
+    else if( (ctl & 0x7) == 7){
+      color = readNextNibble(&byte, &readState, gfxdat);
+      printf("color %d at (%d,%d)\n", color, ((pixoff - img->pixels) % img->w), 
+             ((pixoff - img->pixels) / img->w));
+      color = fourBitPalMap[color];
+    }
+    else{
+      color = 0x10;
+    }
+    
+    /* Determine number of pixels to add*/
     if(ctl & 0x8){
       nib[0] = readNextNibble(&byte, &readState, gfxdat);
-      if(nib[0] < 0xf) 
+      if(nib[0] < 0xf)
 	num = nib[0] + 2;
       else {
 	nib[1] = readNextNibble(&byte, &readState, gfxdat);
@@ -226,47 +248,32 @@ C4Img *loadC4Img(FILE *gfxdat, FILE *gfxndx, int file_num){
 	  }
 	}
       }
-      //printf("num = %d\n", num);
-      
-      // add color from local palette
-      if( (ctl & 0x7) <= 5){
-	memset(pixoff, img->pal[ctl & 0x7], num);
-      }
-      // copy pixels from previous line
-      else if( (ctl & 0x7) == 6){
+    }
+    else
+      num = 1;
+    //printf("num = %d\n", num);
+    
+    if(num != 1){
+      if(color == 0x10){
 	prevline = pixoff - img->w;
 	for(i = 0; i < num; i++){
 	  *(pixoff + i) = *prevline++;
 	}
 	printf("110: %d\n", num);
       }
-      // read color from next nibble
       else {
-	color = readNextNibble(&byte, &readState, gfxdat);
-	color = FourBitPalMap[color];
-	memset(pixoff, color, num);	
+	memset(pixoff, color, num);
       }
-      numpix -= num;
-      pixoff += num;
     }
-    // add one pixel
     else {
-      if(ctl <= 5){
-	*pixoff = img->pal[ctl];
-	printf("color %d at (%d,%d)\n", ctl, ((pixoff - img->pixels) % img->w), 
-	       ((pixoff - img->pixels) / img->w));
-      }
-      else{
-	color = readNextNibble(&byte, &readState, gfxdat);
-	printf("color %d at (%d,%d)\n", color, ((pixoff - img->pixels) % img->w), 
-	       ((pixoff - img->pixels) / img->w));
-	color = FourBitPalMap[color];
-	*pixoff = color;
-      }
-      numpix--;
-      pixoff++;
+      *pixoff = color;
     }
+    
+    numpix -= num;
+    pixoff += num;
   }
+
+  printf("bytes read = %d\n", (ftell(gfxdat)) - offset);
 
   return img;
 }
@@ -507,7 +514,6 @@ int main(int argc, char **argv){
   }
   SDL_UnlockSurface(screen);
   SDL_Flip(screen);
-
 
   mainLoop();
   
