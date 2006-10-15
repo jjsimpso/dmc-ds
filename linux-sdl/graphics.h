@@ -22,6 +22,26 @@ typedef struct {
   Uint8 *pixels;
 } C8Img;
 
+Uint8 DM2FourBitPalMap[16];
+Uint8 FourBitPalMap[16] = {
+  237,
+  0,
+  235,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0
+};
+
 Uint8 DefaultPalette[256][3] = {
   0x00,0x00,0x00,
   0x0C,0x08,0x00,
