@@ -148,11 +148,6 @@ Uint8 readNextNibble(Uint8 *byte, int *flag, FILE *file){
   return (nibble >> 4);
 }
 
-void addPixels(Uint8 color, Uint8 num, Uint8 **dest){
-  memset(*dest, num, color);
-  *dest += num;
-}
-
 C4Img *loadC4Img(FILE *gfxdat, FILE *gfxndx, int file_num){
   int offset, end, tmp, numpix, num, i;
   int readState = 0;
@@ -215,8 +210,8 @@ C4Img *loadC4Img(FILE *gfxdat, FILE *gfxndx, int file_num){
     }
     else if( (ctl & 0x7) == 7){
       color = readNextNibble(&byte, &readState, gfxdat);
-      printf("color %d at (%d,%d)\n", color, ((pixoff - img->pixels) % img->w), 
-             ((pixoff - img->pixels) / img->w));
+      //printf("color %d at (%d,%d)\n", color, ((pixoff - img->pixels) % img->w), 
+      //       ((pixoff - img->pixels) / img->w));
       color = fourBitPalMap[color];
     }
     else{
@@ -256,9 +251,13 @@ C4Img *loadC4Img(FILE *gfxdat, FILE *gfxndx, int file_num){
     if(num != 1){
       if(color == 0x10){
 	prevline = pixoff - img->w;
+#if 0
 	for(i = 0; i < num; i++){
 	  *(pixoff + i) = *prevline++;
 	}
+#else
+	memcpy(pixoff, prevline, num);	
+#endif
 	printf("110: %d\n", num);
       }
       else {
@@ -266,7 +265,10 @@ C4Img *loadC4Img(FILE *gfxdat, FILE *gfxndx, int file_num){
       }
     }
     else {
-      *pixoff = color;
+      if(color == 0x10)
+	*pixoff = *(pixoff - img->w);
+      else
+	*pixoff = color;
     }
     
     numpix -= num;
