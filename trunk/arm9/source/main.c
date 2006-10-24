@@ -30,30 +30,22 @@ int main()
 	irqSet(IRQ_VBLANK, 0);
 	irqEnable(IRQ_VBLANK);
 
-#if 0
-	// Setup the Main screen for 2D 
-	videoSetMode(MODE_0_2D | DISPLAY_BG0_ACTIVE);
-	vramSetBankA(VRAM_A_MAIN_BG);
+	videoSetMode(MODE_5_2D | DISPLAY_BG2_ACTIVE);
+        videoSetModeSub(MODE_5_2D | DISPLAY_BG1_ACTIVE);// | DISPLAY_BG3_ACTIVE);
 
-	BG0_CR = BG_MAP_BASE(31);
+	vramSetBankA(VRAM_A_MAIN_BG_0x6000000);
+        vramSetBankC(VRAM_C_SUB_BG_0x6200000);
 
-	// Set the colour of the font to White.
-	BG_PALETTE[255] = RGB15(31,31,31);
-	
-	consoleInitDefault((u16*)SCREEN_BASE_BLOCK(31), (u16*)CHAR_BASE_BLOCK(0), 16);
-#else
-	videoSetMode(MODE_FB0);
-        videoSetModeSub(MODE_0_2D | DISPLAY_BG0_ACTIVE);  //sub bg 0 will be used to print text
-	vramSetBankA(VRAM_A_LCD);
-        vramSetBankC(VRAM_C_SUB_BG);
-
-        SUB_BG0_CR = BG_MAP_BASE(31);
+        //BG0_CR = BG_MAP_BASE(31);
+	BG2_CR = BG_BMP8_256x256 | BG_WRAP_ON;
+        SUB_BG1_CR = BG_MAP_BASE(31);
+	//SUB_BG3_CR = BG_BMP8_256x256 | BG_WRAP_ON;
         
         BG_PALETTE_SUB[255] = RGB15(31,31,31);  //by default font will be rendered with color 255
         
         //consoleInit() is a lot more flexible but this gets you up and running quick
         consoleInitDefault((u16*)SCREEN_BASE_BLOCK_SUB(31), (u16*)CHAR_BASE_BLOCK_SUB(0), 16);
-#endif
+
 	printf("Hello World\n");
 
 	/* Load dungeon.dat */
