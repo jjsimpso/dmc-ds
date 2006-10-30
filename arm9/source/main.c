@@ -8,12 +8,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <gbfs.h>			// filesystem functions
-
+#include "filesystem.h"			// filesystem functions
 #include "dmc.h"
 #include "dungeon.h"
-
-extern const GBFS_FILE  data_gbfs;
 
 DngDat *dungeonData;
 
@@ -54,6 +51,9 @@ int main()
 	  fprintf(stderr, "Error loading dungeon.dat file %s\n", "dungeon.dat");
 	  exit(1);    
 	}
+
+	/* Load graphics.dat */
+	
 
 	while(1){
 	  swiWaitForVBlank();
