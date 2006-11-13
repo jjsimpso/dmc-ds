@@ -38,7 +38,7 @@ FILE *gbfsOpen(char *filename, const char *mode){
   FILE *stream;
 
   stream = malloc(sizeof(GBFS_FD));
-  stream->data = gbfs_get_obj(&data_gbfs, filename, NULL);
+  stream->data = gbfs_get_obj(gbfs_file, filename, NULL);
   if(stream->data == NULL){
     return NULL;
   }

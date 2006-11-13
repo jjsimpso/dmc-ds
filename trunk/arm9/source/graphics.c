@@ -15,7 +15,7 @@ GfxDat *readGfxDat(char *filename){
 
 #ifdef ARM9
   gfile = malloc(sizeof(GBFS_FD));
-  gfile->data = gbfs_get_obj(&data_gbfs, filename, NULL);
+  gfile->data = gbfs_get_obj(gbfs_file, filename, NULL);
   if(gfile->data == NULL){
     return NULL;
   }
@@ -85,7 +85,7 @@ void readFourBitPal(FILE *gfxdat, FILE *gfxndx, Uint8 *palmap){
   Requires two variables to be used to maintain state, since filesystem
   reads must be at least one byte.
 */
-Uint8 readNextNibble(Uint8 *byte, int *flag, FILE *file){
+static Uint8 readNextNibble(Uint8 *byte, int *flag, FILE *file){
   Uint8 nibble;
 
   if(*flag == 0){
@@ -239,13 +239,13 @@ C4Img *loadC4Img(FILE *gfxdat, FILE *gfxndx, int file_num){
    The 8bit compressed image format (C8) consists of two basic commands:
    pixel commands and projection commands.
 */
-Uint8 *procPixelCom(Uint8 pixel, Uint8 *off){
+static Uint8 *procPixelCom(Uint8 pixel, Uint8 *off){
   *off = pixel;
   off++;
   return off;
 }
 
-Uint8 *procProjectCom(Uint16 command, Uint8 *off, int ctype){
+static Uint8 *procProjectCom(Uint16 command, Uint8 *off, int ctype){
   Uint8 *dst, *src;
   Uint16 neg_off;
   Uint8 len;
