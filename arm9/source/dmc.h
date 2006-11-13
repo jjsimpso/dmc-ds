@@ -6,7 +6,6 @@ typedef u8 Uint8;
 typedef u16 Uint16;
 typedef u32 Uint32;
 
-extern const GBFS_FILE  data_gbfs;
-
+extern GBFS_FILE const* gbfs_file;
 
 #endif /* DMC_H_INCLUDED */

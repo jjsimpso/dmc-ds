@@ -9,7 +9,8 @@ include $(DEVKITARM)/ds_rules
 
 export TARGET		:=	$(shell basename $(CURDIR))
 export TOPDIR		:=	$(CURDIR)
-
+export GBFSFILES	:= 	$(notdir $(wildcard data/*.*))
+GBFSDIR			:=	data  
 
 #---------------------------------------------------------------------------------
 # path to tools - this can be deleted if you set the path in windows
@@ -26,8 +27,11 @@ all: $(TARGET).ds.gba
 $(TARGET).ds.gba	: $(TARGET).nds
 
 #---------------------------------------------------------------------------------
-$(TARGET).nds	:	$(TARGET).arm7 $(TARGET).arm9
+$(TARGET).nds	:	$(TARGET).arm7 $(TARGET).arm9 data.gbfs
 	ndstool	-c $(TARGET).nds -7 $(TARGET).arm7 -9 $(TARGET).arm9
+	padbin 256 $(TARGET).nds
+	cat $(TARGET).nds data.gbfs > $(TARGET).nds.tmp
+	mv $(TARGET).nds.tmp $(TARGET).nds
 
 #---------------------------------------------------------------------------------
 $(TARGET).arm7	: arm7/$(TARGET).elf
@@ -42,7 +46,11 @@ arm9/$(TARGET).elf:
 	$(MAKE) -C arm9
 
 #---------------------------------------------------------------------------------
+data.gbfs :
+	@cd $(GBFSDIR) && gbfs $(TOPDIR)/$@ $(GBFSFILES)
+
+#---------------------------------------------------------------------------------
 clean:
 	$(MAKE) -C arm9 clean
 	$(MAKE) -C arm7 clean
-	rm -f $(TARGET).ds.gba $(TARGET).nds $(TARGET).arm7 $(TARGET).arm9
+	rm -f $(TARGET).ds.gba $(TARGET).nds $(TARGET).arm7 $(TARGET).arm9 data.gbfs

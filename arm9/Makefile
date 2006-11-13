@@ -83,7 +83,7 @@ else
 endif
 #---------------------------------------------------------------------------------
 
-export OFILES	:=	data.gbfs.o $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
+export OFILES	:=	$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
@@ -123,9 +123,9 @@ $(ARM9ELF)	:	$(OFILES)
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data 
 #---------------------------------------------------------------------------------
-%.gbfs.o : %.gbfs
-	@echo $(notdir $<)
-	@$(bin2o)
+#%.gbfs.o : %.gbfs
+#	@echo $(notdir $<)
+#	@$(bin2o)
 
 %.gbfs :
 	@cd $(ARM9DIR)/data && gbfs $(ARM9DIR)/$(BUILD)/$@ $(GBFSFILES)

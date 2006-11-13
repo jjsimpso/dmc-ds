@@ -8,7 +8,6 @@
 #include "filesystem.h"
 #include "dmc.h"
 
-extern const GBFS_FILE  data_gbfs;
 #else
 #include "SDL.h"
 #endif
@@ -759,7 +758,7 @@ DngDat *readDngDat(char *filename){
 
 #ifdef ARM9
   dfile = malloc(sizeof(GBFS_FD));
-  dfile->data = gbfs_get_obj(&data_gbfs, filename, NULL);
+  dfile->data = gbfs_get_obj(gbfs_file, filename, NULL);
   if(dfile->data == NULL){
     return NULL;
   }

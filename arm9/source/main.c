@@ -11,9 +11,13 @@
 #include "filesystem.h"			// filesystem functions
 #include "dmc.h"
 #include "dungeon.h"
+#include "graphics.h"
 
+#include "defpal.h"                     // Default palette data
 DngDat *dungeonData;
+GfxDat *gfxData;
 
+GBFS_FILE const* gbfs_file;
 
 int main()
 {	
@@ -45,6 +49,12 @@ int main()
 
 	printf("Hello World\n");
 
+	// Map Game Cartridge memory to ARM9
+	WAIT_CR &= ~0x80;
+
+	/* Start searching from the beginning of cartridge memory */
+	gbfs_file = find_first_gbfs_file((void*)0x08000000);
+
 	/* Load dungeon.dat */
 	dungeonData = readDngDat("dungeon.dat");
 	if(dungeonData == NULL){
@@ -53,8 +63,13 @@ int main()
 	}
 
 	/* Load graphics.dat */
+	gfxData = readGfxDat("GRAPHICS.DAT");
+	if(gfxData == NULL){
+	  fprintf(stderr, "Error loading graphics.dat file %s\n", "GRAPHICS.DAT");
+	  exit(1);    
+	}
 	
-
+	
 	while(1){
 	  swiWaitForVBlank();
 	  scanKeys();
