@@ -16,6 +16,7 @@
 #include "defpal.h"                     // Default palette data
 DngDat *dungeonData;
 GfxDat *gfxData;
+int *gfxndx;
 
 GBFS_FILE const* gbfs_file;
 
@@ -69,6 +70,12 @@ int main()
 	  exit(1);    
 	}
 	
+	/* Load graphics.ndx (really just returns the pointer to the ndx array) */
+	gfxndx = readGfxNdx("graphics.ndx");
+	if(gfxndx == NULL){
+	  fprintf(stderr, "Error loading graphics.ndx file %s\n", "graphics.ndx");
+	  exit(1);
+	}
 	
 	while(1){
 	  swiWaitForVBlank();

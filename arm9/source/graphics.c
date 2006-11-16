@@ -52,8 +52,8 @@ GfxDat *readGfxDat(char *filename){
   return gfxdat;
 }
 
-void readGfxNdx(){
-
+int *readGfxNdx(char *filename){
+  return (int *)gbfs_get_obj(gbfs_file, filename, NULL);
 }
 
 void readFourBitPal(FILE *gfxdat, FILE *gfxndx, Uint8 *palmap){
