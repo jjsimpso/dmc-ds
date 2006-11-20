@@ -53,6 +53,14 @@ int main()
 
 	printf("Hello World\n");
 
+	// Setup rotation background
+	BG2_XDX = 1 << 8;
+        BG2_XDY = 0;
+        BG2_YDX = 0;
+        BG2_YDY = 1 << 8;
+	BG2_CY = 0;
+	BG2_CX = 0;
+
 	// Map Game Cartridge memory to ARM9
 	WAIT_CR &= ~0x80;
 
