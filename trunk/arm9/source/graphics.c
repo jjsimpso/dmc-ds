@@ -56,17 +56,16 @@ int *readGfxNdx(char *filename){
   return (int *)gbfs_get_obj(gbfs_file, filename, NULL);
 }
 
-void readFourBitPal(FILE *gfxdat, FILE *gfxndx, Uint8 *palmap){
+void readFourBitPal(GfxDat *gfxdat, int *gfxndx, Uint8 *palmap){
   int offset;
 
   /* read the offset from gfxndx
      16 color palette map is the second entry */
-  fseek(gfxndx, 4, SEEK_SET);
-  fread(&offset, 4, 1, gfxndx);
+  offset = gfxndx[1];
 
   /* read the palette map from graphics.dat */
-  fseek(gfxdat, offset, SEEK_SET);
-  fread(palmap, 1, 16, gfxdat);
+  fseek(gfxdat->gfile, offset, SEEK_SET);
+  fread(palmap, 1, 16, gfxdat->gfile);
 
 #if 1
  {
@@ -103,30 +102,31 @@ static Uint8 readNextNibble(Uint8 *byte, int *flag, FILE *file){
   return (nibble >> 4);
 }
 
-C4Img *loadC4Img(FILE *gfxdat, FILE *gfxndx, int file_num){
+C4Img *loadC4Img(GfxDat *gfxdat, int *gfxndx, int file_num){
   int offset, end, tmp, numpix, num, i;
   int readState = 0;
   Uint8 byte, ctl, nib[7], color;
   Uint8 fourBitPalMap[16];
   Uint8 *pixoff, *prevline;
+  FILE *gfile;
   C4Img *img;
   
+  gfile = gfxdat->gfile;
   img = (C4Img *) malloc(sizeof(C4Img));
   
   /* get offset and end from gfxndx */
-  fseek(gfxndx, file_num * 4, SEEK_SET);
-  fread(&offset, 4, 1, gfxndx);
-  fread(&end, 4, 1, gfxndx);
+  offset = gfxndx[file_num];
+  end = gfxndx[file_num+1];
 
   /* read palatte data from end of image data */
-  fseek(gfxdat, end - 16, SEEK_SET);
-  fread(&fourBitPalMap, 1, 16, gfxdat);
+  fseek(gfile, end - 16, SEEK_SET);
+  fread(&fourBitPalMap, 1, 16, gfile);
 
   /* read header data from gfxdat */
-  fseek(gfxdat, offset, SEEK_SET);
-  fread(&img->w, 2, 1, gfxdat);
-  fread(&img->h, 2, 1, gfxdat);
-  fread(&tmp, 3, 1, gfxdat);
+  fseek(gfile, offset, SEEK_SET);
+  fread(&img->w, 2, 1, gfile);
+  fread(&img->h, 2, 1, gfile);
+  fread(&tmp, 3, 1, gfile);
   
   img->pal[0] = (tmp & 0xf0) >> 4;
   img->pal[1] =  tmp & 0x0f;
@@ -155,7 +155,7 @@ C4Img *loadC4Img(FILE *gfxdat, FILE *gfxndx, int file_num){
   
   pixoff = img->pixels;
   while(numpix > 0){
-    ctl = readNextNibble(&byte, &readState, gfxdat);
+    ctl = readNextNibble(&byte, &readState, gfile);
 
     /* Determine color to add */
     if( (ctl & 0x7) <= 5){
@@ -164,7 +164,7 @@ C4Img *loadC4Img(FILE *gfxdat, FILE *gfxndx, int file_num){
       //       ((pixoff - img->pixels) / img->w));
     }
     else if( (ctl & 0x7) == 7){
-      color = readNextNibble(&byte, &readState, gfxdat);
+      color = readNextNibble(&byte, &readState, gfile);
       //printf("color %d at (%d,%d)\n", color, ((pixoff - img->pixels) % img->w), 
       //       ((pixoff - img->pixels) / img->w));
       color = fourBitPalMap[color];
@@ -175,25 +175,25 @@ C4Img *loadC4Img(FILE *gfxdat, FILE *gfxndx, int file_num){
     
     /* Determine number of pixels to add*/
     if(ctl & 0x8){
-      nib[0] = readNextNibble(&byte, &readState, gfxdat);
+      nib[0] = readNextNibble(&byte, &readState, gfile);
       if(nib[0] < 0xf)
 	num = nib[0] + 2;
       else {
-	nib[1] = readNextNibble(&byte, &readState, gfxdat);
+	nib[1] = readNextNibble(&byte, &readState, gfile);
 	if(nib[1] < 0xf){
-	  nib[2] = readNextNibble(&byte, &readState, gfxdat);
+	  nib[2] = readNextNibble(&byte, &readState, gfile);
 	  num = 17 + (nib[1] * 16) + nib[2];
 	}
 	else {
-	  nib[2] = readNextNibble(&byte, &readState, gfxdat);
+	  nib[2] = readNextNibble(&byte, &readState, gfile);
 	  if(nib[2] < 0xf){
 	    num = nib[2] + 257;
 	  }
 	  else {
-	    nib[3] = readNextNibble(&byte, &readState, gfxdat);
-	    nib[4] = readNextNibble(&byte, &readState, gfxdat);
-	    nib[5] = readNextNibble(&byte, &readState, gfxdat);
-	    nib[6] = readNextNibble(&byte, &readState, gfxdat);
+	    nib[3] = readNextNibble(&byte, &readState, gfile);
+	    nib[4] = readNextNibble(&byte, &readState, gfile);
+	    nib[5] = readNextNibble(&byte, &readState, gfile);
+	    nib[6] = readNextNibble(&byte, &readState, gfile);
 	    num = (nib[3] * 4096) + (nib[4] * 256) + (nib[5] * 16) + nib[6];
 	  }
 	}
@@ -213,7 +213,7 @@ C4Img *loadC4Img(FILE *gfxdat, FILE *gfxndx, int file_num){
 #else
 	memcpy(pixoff, prevline, num);	
 #endif
-	printf("110: %d\n", num);
+	//printf("110: %d\n", num);
       }
       else {
 	memset(pixoff, color, num);
@@ -230,7 +230,7 @@ C4Img *loadC4Img(FILE *gfxdat, FILE *gfxndx, int file_num){
     pixoff += num;
   }
 
-  printf("bytes read = %d\n", (ftell(gfxdat)) - offset);
+  printf("bytes read = %d\n", (ftell(gfile)) - offset);
 
   return img;
 }
@@ -272,29 +272,30 @@ static Uint8 *procProjectCom(Uint16 command, Uint8 *off, int ctype){
   return off;
 }
 
-C8Img *loadC8Img(FILE *gfxdat, FILE *gfxndx, int file_num){
+C8Img *loadC8Img(GfxDat *gfxdat, int *gfxndx, int file_num){
   int offset, tmp, i, numpix;
   Uint8 control, pixel;
   Uint16 command;
   Uint8 *pixoff;
+  FILE *gfile;
   C8Img *img;
 
+  gfile = gfxdat->gfile;
   img = (C8Img *) malloc(sizeof(C8Img));
 
   /* get offset from gfxndx */
-  fseek(gfxndx, file_num * 4, SEEK_SET);
-  fread(&offset, 4, 1, gfxndx);
+  offset = gfxndx[file_num];
   
   /* read data from gfxdat */
-  fseek(gfxdat, offset, SEEK_SET);
-  fread(&img->w, 2, 1, gfxdat);
-  fread(&img->h, 2, 1, gfxdat);
-  fread(&img->xoff, 1, 1, gfxdat);
-  fread(&img->yoff, 1, 1, gfxdat);
-  fread(&img->ctype, 1, 1, gfxdat);
+  fseek(gfile, offset, SEEK_SET);
+  fread(&img->w, 2, 1, gfile);
+  fread(&img->h, 2, 1, gfile);
+  fread(&img->xoff, 1, 1, gfile);
+  fread(&img->yoff, 1, 1, gfile);
+  fread(&img->ctype, 1, 1, gfile);
   
   // read zero byte
-  fread(&tmp, 1, 1, gfxdat);
+  fread(&tmp, 1, 1, gfile);
 
   img->w &= 0x03ff;
   img->h &= 0x03ff;
@@ -303,15 +304,15 @@ C8Img *loadC8Img(FILE *gfxdat, FILE *gfxndx, int file_num){
   
   pixoff = img->pixels;
   while( (pixoff - img->pixels) < numpix){
-    fread(&control, 1, 1, gfxdat);
+    fread(&control, 1, 1, gfile);
 
     for(i = 0; ((i < 8) && ((pixoff - img->pixels) < numpix)); i++){
       if(control & 0x1){
-	fread(&pixel, 1, 1, gfxdat);
+	fread(&pixel, 1, 1, gfile);
 	pixoff = procPixelCom(pixel, pixoff);
       }
       else{
-	fread(&command, 2, 1, gfxdat);
+	fread(&command, 2, 1, gfile);
 	pixoff = procProjectCom(command, pixoff, img->ctype);
       }
       control = control >> 1;
@@ -327,11 +328,14 @@ C8Img *loadC8Img(FILE *gfxdat, FILE *gfxndx, int file_num){
   return img;
 }
 
-void copyPalette(Uint8 pal[][3], Uint16 *dest, Uint8 start, Uint8 num){
+void copyPal24(Uint8 pal[][3], Uint16 *dest, int start, int num){
   int i;
   
-  for(i = start; i < num; i++){
-
+  dest += start; 
+  for(i = start; i < num; i++, dest++){
+    *dest = (((pal[i][2] & 0xf8) >> 3) << 10) | 
+            (((pal[i][1] & 0xf8) >> 3) << 5)  | 
+             ((pal[i][0] & 0xf8) >> 3);
   }
 }
 
