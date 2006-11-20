@@ -12,13 +12,16 @@
 #include "dmc.h"
 #include "dungeon.h"
 #include "graphics.h"
+#include "draw.h"
 
+/* Global vars */
 #include "defpal.h"                     // Default palette data
 DngDat *dungeonData;
 GfxDat *gfxData;
 int *gfxndx;
 
 GBFS_FILE const* gbfs_file;
+
 
 int main()
 {	
@@ -39,7 +42,7 @@ int main()
         vramSetBankC(VRAM_C_SUB_BG_0x6200000);
 
         //BG0_CR = BG_MAP_BASE(31);
-	BG2_CR = BG_BMP8_256x256 | BG_WRAP_ON;
+	BG2_CR = BG_BMP8_512x256 | BG_WRAP_ON;
         SUB_BG1_CR = BG_MAP_BASE(31);
 	//SUB_BG3_CR = BG_BMP8_256x256 | BG_WRAP_ON;
         
@@ -77,6 +80,11 @@ int main()
 	  exit(1);
 	}
 	
+	/* Load DM2 palette */
+	copyPal24(DefaultPalette, BG_PALETTE, 0, 256);
+
+	drawTitle();
+
 	while(1){
 	  swiWaitForVBlank();
 	  scanKeys();

@@ -1,4 +1,5 @@
 #ifndef GRAPHICS_H_INCLUDED
+#define GRAPHICS_H_INCLUDED
 
 typedef struct {
   Uint16 numItems;
@@ -47,8 +48,9 @@ extern Uint8 DefaultPalette[256][3];  // initialized in defpal.h
 /* Prototypes */
 GfxDat *readGfxDat(char *filename);
 int *readGfxNdx(char *filename);
-void readFourBitPal(FILE *gfxdat, FILE *gfxndx, Uint8 *palmap);
-C4Img *loadC4Img(FILE *gfxdat, FILE *gfxndx, int file_num);
-C8Img *loadC8Img(FILE *gfxdat, FILE *gfxndx, int file_num);
+void readFourBitPal(GfxDat *gfxdat, int *gfxndx, Uint8 *palmap);
+C4Img *loadC4Img(GfxDat *gfxdat, int *gfxndx, int file_num);
+C8Img *loadC8Img(GfxDat *gfxdat, int *gfxndx, int file_num);
+void copyPal24(Uint8 pal[][3], Uint16 *dest, int start, int num);
 
 #endif /* GRAPHICS_H_INCLUDED */
