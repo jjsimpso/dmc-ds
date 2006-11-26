@@ -272,7 +272,20 @@ static Uint8 *procProjectCom(Uint16 command, Uint8 *off, int ctype){
   return off;
 }
 
-C8Img *loadC8Img(GfxDat *gfxdat, int *gfxndx, int file_num){
+/*
+  Load a compressed 8bit image from the graphics.dat file.
+
+  gfxdat is a pointer to the loaded graphics.dat data structure.
+  gfxndx is a pointer to a table indexing the offsets of all the files in graphics.dat.
+  file_num is the number of the file to load from graphics.dat.
+  alphaColor is the index of the transparent color(usually 9 or 10).  Because the NDS
+     hardware treats index 0 as the transparent color, all instances of alphaColor must
+     be switched to index 0.  Pixels that already are set to zero will not be drawn,
+     but thankfully, they seem to be very rare in the DM2 images I have looked at.  If
+     there is no transparent color, then alphaColor should be set to 0.
+*/
+
+C8Img *loadC8Img(GfxDat *gfxdat, int *gfxndx, int file_num, Uint8 alphaColor){
   int offset, tmp, i, numpix;
   Uint8 control, pixel;
   Uint16 command;
@@ -309,6 +322,7 @@ C8Img *loadC8Img(GfxDat *gfxdat, int *gfxndx, int file_num){
     for(i = 0; ((i < 8) && ((pixoff - img->pixels) < numpix)); i++){
       if(control & 0x1){
 	fread(&pixel, 1, 1, gfile);
+	if(pixel == alphaColor) pixel = 0;
 	pixoff = procPixelCom(pixel, pixoff);
       }
       else{

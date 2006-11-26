@@ -442,8 +442,8 @@ void mainLoop(){
 
 int main(int argc, char **argv){
   FILE *gfxndx;
-  //C8Img *img;
-  C4Img *img;
+  C8Img *img;
+  //C4Img *img;
   Uint8 *dest, *src;
   SDL_Color *color;
   int i;
@@ -490,7 +490,8 @@ int main(int argc, char **argv){
 
   readFourBitPal(gfxdat, gfxndx, DM2FourBitPalMap);
 
-  img = loadC4Img(gfxdat, gfxndx, 3);
+  //img = loadC4Img(gfxdat, gfxndx, 3);
+  img = loadC8Img(gfxdat, gfxndx, 2167);
   //img = loadC8Img(gfxdat, gfxndx, 175);
 
   printf("bpp = %d\n", screen->format->BitsPerPixel);
