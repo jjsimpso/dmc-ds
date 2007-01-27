@@ -1,0 +1,22 @@
+#summary List of tools used in building dmc-ds.
+
+= Tools Used By The Project =
+
+I'll try to keep this updated with the tools I'm currently using.
+
+== Software ==
+[http://sourceforge.net/projects/devkitpro/ devkitARM] version r19a
+
+[http://sourceforge.net/projects/devkitpro/ libnds] version 20060601
+
+
+== Hardware ==
+Flash2Advance Ultra 128: 128 Mbit GBA flash cartridge
+
+
+
+
+
+
+
+
