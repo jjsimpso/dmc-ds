@@ -17,6 +17,8 @@ Flash2Advance Ultra 128: 128 Mbit GBA flash cartridge
 
 GBA: Needed for flashing to cart
 
+Passkey2: Homebrew enabling device for the NDS.
+
 NDS(original model)
 
 [Home Back to home]
