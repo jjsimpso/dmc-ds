@@ -1,5 +1,4 @@
 #summary dmc-ds wiki
 = Contents =
 
-Tools
-
+[Tools]
