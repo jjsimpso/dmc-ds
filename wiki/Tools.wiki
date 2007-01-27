@@ -9,13 +9,14 @@ I'll try to keep this updated with the tools I'm currently using.
 
 [http://sourceforge.net/projects/devkitpro/ libnds] version 20060601
 
-[http://if2a.free.fr/ if2a] version 0.94.4 : Free software linker program for
+[http://if2a.free.fr/ if2a] version 0.94.4: Free software linker program for
 Flash2Advance and Flash2Advance Ultra GBA carts.
 
 == Hardware ==
 Flash2Advance Ultra 128: 128 Mbit GBA flash cartridge
 
+GBA: Needed for flashing to cart
 
+NDS(original model)
 
 [Home Back to home]
-
