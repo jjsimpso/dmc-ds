@@ -2,7 +2,26 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "filesystem.h"
+#include "dmc.h"
+
+GBFS_FD *gbfsOpen(const char *path, const char *mode){
+  GBFS_FD *stream;
+
+  stream = malloc(sizeof(GBFS_FD));
+  stream->data = gbfs_get_obj(gbfs_file, path, NULL);
+  if(stream->data == NULL){
+    return NULL;
+  }
+  stream->pos = 0;
+
+  return stream;
+}
+
+int gbfsClose(GBFS_FD *fp){
+  free(fp->data);
+  free(fp);
+  return 0;
+}
 
 int gbfsRead(void *ptr, size_t size, size_t nmemb, FILE *stream){
   int i;
@@ -34,15 +53,8 @@ int gbfsTell(FILE *stream){
   return stream->pos;
 }
 
-FILE *gbfsOpen(char *filename, const char *mode){
-  FILE *stream;
-
-  stream = malloc(sizeof(GBFS_FD));
-  stream->data = gbfs_get_obj(gbfs_file, filename, NULL);
-  if(stream->data == NULL){
-    return NULL;
-  }
-  stream->pos = 0;
-
-  return stream;
+char *gbfsGets(char *s, int size, FILE *stream){
+  strncpy(s, stream->data, size);
+  s[255] = 0;
+  return s;
 }
