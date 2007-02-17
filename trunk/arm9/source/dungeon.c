@@ -3,16 +3,11 @@
 #include <string.h>
 
 #ifdef ARM9
-
-#include <nds.h>			// include your ndslib
-#include "filesystem.h"
 #include "dmc.h"
-
 #else
 #include "SDL.h"
-#endif
-
 #include "dungeon.h"
+#endif
 
 #if 1
 #define SWAPBYTES

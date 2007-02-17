@@ -2,16 +2,13 @@
  
 ---------------------------------------------------------------------------------*/
 
-#include <nds.h>			// include your ndslib
-#include <nds/arm9/image.h>		// needed to load pcx files
-#include <nds/arm9/trig_lut.h>
+//#include <nds.h>			// include your ndslib
+//#include <nds/arm9/image.h>		// needed to load pcx files
+//#include <nds/arm9/trig_lut.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "filesystem.h"			// filesystem functions
 #include "dmc.h"
-#include "dungeon.h"
-#include "graphics.h"
 #include "draw.h"
 
 /* Global vars */

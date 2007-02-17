@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <nds.h>			// include your ndslib
-#include "filesystem.h"
 #include "dmc.h"
 
 #include "graphics.h"
@@ -102,6 +100,13 @@ static Uint8 readNextNibble(Uint8 *byte, int *flag, FILE *file){
   return (nibble >> 4);
 }
 
+/*
+  Load a compressed 4bit image from the graphics.dat file.
+
+  gfxdat is a pointer to the loaded graphics.dat data structure.
+  gfxndx is a pointer to a table indexing the offsets of all the files in graphics.dat.
+  file_num is the number of the file to load from graphics.dat.
+*/
 C4Img *loadC4Img(GfxDat *gfxdat, int *gfxndx, int file_num){
   int offset, end, tmp, numpix, num, i;
   int readState = 0;
@@ -284,7 +289,6 @@ static Uint8 *procProjectCom(Uint16 command, Uint8 *off, int ctype){
      but thankfully, they seem to be very rare in the DM2 images I have looked at.  If
      there is no transparent color, then alphaColor should be set to 0.
 */
-
 C8Img *loadC8Img(GfxDat *gfxdat, int *gfxndx, int file_num, Uint8 alphaColor){
   int offset, tmp, i, numpix;
   Uint8 control, pixel;
@@ -340,6 +344,22 @@ C8Img *loadC8Img(GfxDat *gfxdat, int *gfxndx, int file_num, Uint8 alphaColor){
   fprintf(stdout, "numpixels = %d\n", pixoff - img->pixels);
 
   return img;
+}
+
+void freeC4Img(C4Img *img){
+  if(img->pixels != NULL)
+    free(img->pixels);
+  
+  if(img != NULL)
+    free(img);
+}
+
+void freeC8Img(C8Img *img){
+  if(img->pixels != NULL)
+    free(img->pixels);
+
+  if(img != NULL)
+    free(img);
 }
 
 void copyPal24(Uint8 pal[][3], Uint16 *dest, int start, int num){
