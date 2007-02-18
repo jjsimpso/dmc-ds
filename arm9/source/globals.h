@@ -1,21 +1,27 @@
 #ifndef GLOBALS_H_DEFINED
 #define GLOBALS_H_DEFINED
 
-#include "dungeon.h"
-#include "graphics.h"
-
 /* Useful macros */
 #define IFNN(X,Y) if(X != NULL) Y;
 
 #define CUR_MAP_DATA G.dungeonData->mapData[G.curMap]
 
 
+typedef struct {
+  DngDat *dungeonData;
+  GfxDat *gfxData;
+  int *gfxndx;
+} Globals;
 
+/*
 extern Uint8 DefaultPalette[256][3];
 extern DngDat *dungeonData;
 extern GfxDat *gfxData;
 extern int *gfxndx;
-extern GBFS_FILE const* gbfs_file;
+*/
+extern Globals G;                      //defined in main.c
+extern  Uint8 DefaultPalette[256][3];  //defined in defpal.h
+extern GBFS_FILE const* gbfs_file;     //defined in main.c
 
 
 

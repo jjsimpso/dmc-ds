@@ -13,6 +13,8 @@ typedef struct {
 #define fseek gbfsSeek
 #define ftell gbfsTell
 #define fgets gbfsGets
+#define fclose gbfsClose
+
 
 GBFS_FD *gbfsOpen(const char *path, const char *mode);
 int gbfsClose(GBFS_FD *fp);

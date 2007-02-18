@@ -18,8 +18,12 @@ GBFS_FD *gbfsOpen(const char *path, const char *mode){
 }
 
 int gbfsClose(GBFS_FD *fp){
-  free(fp->data);
-  free(fp);
+  if(fp != NULL){
+    if(fp->data != NULL)
+      free(fp->data);  
+
+    free(fp);
+  }
   return 0;
 }
 

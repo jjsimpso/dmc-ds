@@ -9,14 +9,18 @@
 #include <stdlib.h>
 
 #include "dmc.h"
+#include "data.h"
 #include "draw.h"
 
 /* Global vars */
 #include "defpal.h"                     // Default palette data
+
+/*
 DngDat *dungeonData;
 GfxDat *gfxData;
 int *gfxndx;
-
+*/
+Globals G;
 GBFS_FILE const* gbfs_file;
 
 
@@ -65,28 +69,32 @@ int main()
 	gbfs_file = find_first_gbfs_file((void*)0x08000000);
 
 	/* Load dungeon.dat */
-	dungeonData = readDngDat("dungeon.dat");
-	if(dungeonData == NULL){
+	G.dungeonData = readDngDat("dungeon.dat");
+	if(G.dungeonData == NULL){
 	  fprintf(stderr, "Error loading dungeon.dat file %s\n", "dungeon.dat");
 	  exit(1);    
 	}
 
 	/* Load graphics.dat */
-	gfxData = readGfxDat("GRAPHICS.DAT");
-	if(gfxData == NULL){
+	G.gfxData = readGfxDat("GRAPHICS.DAT");
+	if(G.gfxData == NULL){
 	  fprintf(stderr, "Error loading graphics.dat file %s\n", "GRAPHICS.DAT");
 	  exit(1);    
 	}
 	
 	/* Load graphics.ndx (really just returns the pointer to the ndx array) */
-	gfxndx = readGfxNdx("graphics.ndx");
-	if(gfxndx == NULL){
+	G.gfxndx = readGfxNdx("graphics.ndx");
+	if(G.gfxndx == NULL){
 	  fprintf(stderr, "Error loading graphics.ndx file %s\n", "graphics.ndx");
 	  exit(1);
 	}
 	
 	/* Load DM2 palette */
 	copyPal24(DefaultPalette, BG_PALETTE, 0, 256);
+
+	/* Load level's dungeon graphics */
+	//initD
+	//loadLevelGfx(wallGfx, "dungfx.txt");
 
 	drawTitle();
 
