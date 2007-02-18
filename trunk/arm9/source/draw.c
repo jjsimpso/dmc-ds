@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include "dmc.h"
-
+#include "surface.h"
 
 void bitBlt8(Uint8 *dest, Uint8 *src, int w, int h){
   int i;
@@ -25,8 +25,10 @@ void drawTitle(){
   C8Img *title;
   //C4Img *title;
 
-  //title = loadC4Img(gfxData, gfxndx, 3);
-  title = loadC8Img(gfxData, gfxndx, 175, 0);
-  //title = loadC8Img(gfxData, gfxndx, 2167, 10);
+  //title = loadC4Img(G.gfxData, G.gfxndx, 3);
+  title = loadC8Img(G.gfxData, G.gfxndx, 175, 0);
+  //title = loadC8Img(G.gfxData, G.gfxndx, 2167, 10);
+  
   bitBlt8((Uint8 *)BG_GFX, title->pixels, title->w,  title->h);
+  //bltSurface();
 }

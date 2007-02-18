@@ -44,7 +44,6 @@ Uint8 FourBitPalMap[16] = {
 */
 
 Uint8 DM2FourBitPalMap[16];
-extern Uint8 DefaultPalette[256][3];  // initialized in defpal.h
 
 /* Prototypes */
 GfxDat *readGfxDat(char *filename);

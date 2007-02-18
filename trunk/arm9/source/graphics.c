@@ -347,19 +347,17 @@ C8Img *loadC8Img(GfxDat *gfxdat, int *gfxndx, int file_num, Uint8 alphaColor){
 }
 
 void freeC4Img(C4Img *img){
-  if(img->pixels != NULL)
-    free(img->pixels);
-  
-  if(img != NULL)
+  if(img != NULL) {
+    if(img->pixels != NULL) free(img->pixels);
     free(img);
+  }
 }
 
 void freeC8Img(C8Img *img){
-  if(img->pixels != NULL)
-    free(img->pixels);
-
-  if(img != NULL)
+  if(img != NULL) {
+    if(img->pixels != NULL) free(img->pixels);
     free(img);
+  }
 }
 
 void copyPal24(Uint8 pal[][3], Uint16 *dest, int start, int num){
