@@ -16,6 +16,8 @@ typedef s32 Sint32;
 #include "filesystem.h"
 #include "dungeon.h"
 #include "graphics.h"
+#include "surface.h"
+#include "data.h"
 #include "globals.h"
 
 
