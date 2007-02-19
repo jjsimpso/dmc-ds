@@ -23,6 +23,41 @@ int *gfxndx;
 Globals G;
 GBFS_FILE const* gbfs_file;
 
+void initGlobals(){
+  /* Start searching from the beginning of cartridge memory */
+  gbfs_file = find_first_gbfs_file((void*)0x08000000);
+
+  /* Load dungeon.dat */
+  G.dungeonData = readDngDat("dungeon.dat");
+  if(G.dungeonData == NULL){
+    fprintf(stderr, "Error loading dungeon.dat file %s\n", "dungeon.dat");
+    exit(1);    
+  }
+
+  /* Load graphics.dat */
+  G.gfxData = readGfxDat("GRAPHICS.DAT");
+  if(G.gfxData == NULL){
+    fprintf(stderr, "Error loading graphics.dat file %s\n", "GRAPHICS.DAT");
+    exit(1);    
+  }
+	
+  /* Load graphics.ndx (really just returns the pointer to the ndx array) */
+  G.gfxndx = readGfxNdx("graphics.ndx");
+  if(G.gfxndx == NULL){
+    fprintf(stderr, "Error loading graphics.ndx file %s\n", "graphics.ndx");
+    exit(1);
+  }
+	
+  /* Load DM2 palette */
+  copyPal24(DefaultPalette, BG_PALETTE, 0, 256);
+
+  /* Init graphics surface */
+  G.DngView = newSurf(256, 192, 1, 512);
+  G.DngView->pixels = (Uint8 *)BG_GFX;
+
+  //loadLevelGfx(wallGfx, "dungfx.txt");
+
+}
 
 int main()
 {	
@@ -65,36 +100,7 @@ int main()
 	// Map Game Cartridge memory to ARM9
 	WAIT_CR &= ~0x80;
 
-	/* Start searching from the beginning of cartridge memory */
-	gbfs_file = find_first_gbfs_file((void*)0x08000000);
-
-	/* Load dungeon.dat */
-	G.dungeonData = readDngDat("dungeon.dat");
-	if(G.dungeonData == NULL){
-	  fprintf(stderr, "Error loading dungeon.dat file %s\n", "dungeon.dat");
-	  exit(1);    
-	}
-
-	/* Load graphics.dat */
-	G.gfxData = readGfxDat("GRAPHICS.DAT");
-	if(G.gfxData == NULL){
-	  fprintf(stderr, "Error loading graphics.dat file %s\n", "GRAPHICS.DAT");
-	  exit(1);    
-	}
-	
-	/* Load graphics.ndx (really just returns the pointer to the ndx array) */
-	G.gfxndx = readGfxNdx("graphics.ndx");
-	if(G.gfxndx == NULL){
-	  fprintf(stderr, "Error loading graphics.ndx file %s\n", "graphics.ndx");
-	  exit(1);
-	}
-	
-	/* Load DM2 palette */
-	copyPal24(DefaultPalette, BG_PALETTE, 0, 256);
-
-	/* Load level's dungeon graphics */
-	//initD
-	//loadLevelGfx(wallGfx, "dungfx.txt");
+	initGlobals();
 
 	drawTitle();
 

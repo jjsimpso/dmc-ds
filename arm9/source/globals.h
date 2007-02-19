@@ -11,6 +11,7 @@ typedef struct {
   DngDat *dungeonData;
   GfxDat *gfxData;
   int *gfxndx;
+  Surface *DngView;
 } Globals;
 
 /*

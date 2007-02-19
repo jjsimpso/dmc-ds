@@ -6,13 +6,17 @@
 #include <string.h>
 
 #include "dmc.h"
-#include "surface.h"
+#include "data.h"
 
 void bitBlt8(Uint8 *dest, Uint8 *src, int w, int h){
   int i;
   Uint8 *line;
 
   line = src;
+
+  printf("(%d,%d)\n", w, h);
+  printf("dest = 0x%x\n", dest);
+
   for(i = 0; i < h; i++){
     memcpy(dest, line, w);
     dest += 512;
@@ -22,13 +26,15 @@ void bitBlt8(Uint8 *dest, Uint8 *src, int w, int h){
 }
 
 void drawTitle(){
-  C8Img *title;
+  Surface *title;
+  //C8Img *title;
   //C4Img *title;
 
   //title = loadC4Img(G.gfxData, G.gfxndx, 3);
-  title = loadC8Img(G.gfxData, G.gfxndx, 175, 0);
+  //title = loadC8Img(G.gfxData, G.gfxndx, 175, 0);
   //title = loadC8Img(G.gfxData, G.gfxndx, 2167, 10);
+  title = loadImage(G.gfxData, G.gfxndx, 175, 0);
   
-  bitBlt8((Uint8 *)BG_GFX, title->pixels, title->w,  title->h);
-  //bltSurface();
+  //bitBlt8((Uint8 *)BG_GFX, title->pixels, title->w,  title->h);
+  bltSurface(title, NULL, G.DngView, NULL);
 }
