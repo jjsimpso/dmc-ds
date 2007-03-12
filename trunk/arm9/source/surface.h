@@ -5,10 +5,10 @@
 
 
 typedef struct {
-  Uint16 w, h;
-  Uint8 bytesPerPixel;
-  Uint16 pitch;
-  Uint8 *pixels;
+  Uint16 w, h;          // width, height
+  Uint16 bpr, pitch;    // bytes per row, pitch
+  Uint8 bpp;            // bytes per pixel
+  Uint8 *pixels;        // pixel data
 } Surface;
 
 typedef struct {

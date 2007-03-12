@@ -11,6 +11,7 @@
 */
 Surface *newSurf(Uint16 w, Uint16 h, Uint8 bytesPerPixel, Uint16 pitch){
   Surface *s;
+  Uint8 rem;
 
   s = (Surface *)malloc(sizeof(Surface));
   if(s == NULL)
@@ -18,19 +19,33 @@ Surface *newSurf(Uint16 w, Uint16 h, Uint8 bytesPerPixel, Uint16 pitch){
 
   s->w = w;
   s->h = h;
-  s->bytesPerPixel = bytesPerPixel;
+  s->bpp = bytesPerPixel;
+  s->bpr = w * bytesPerPixel;
 
-  if(pitch == 0)
-    s->pitch = w * bytesPerPixel;
-  else
+  // Ensure that the byte width of a row falls on a word boundary
+  if((rem = s->bpr % 4))
+    s->bpr += 4 - rem;
+
+  // Pitch is set to either the bytes per row or a special value,
+  // such as the width of a hardware surface
+  if(pitch == 0){
+    s->pitch = s->bpr;
+    s->pixels = (Uint8 *)malloc(h * s->bpr);
+  }
+  else {
     s->pitch = pitch;
+    printf("shouldn't be here\n");
+    // place image on a hardware surface
+    //s->pixels = (Uint8 *)somefunc();
+  }
 
-  s->pixels = (Uint8 *)malloc(h * s->pitch);
-
+  /*
+    put this back later
   if(s->pixels == NULL){
     free(s);
     return NULL;
   }
+  */
 
   return s;
 }
@@ -42,7 +57,30 @@ Surface *newSurfFromC4(C4Img *img){
   if(s == NULL)
     return NULL;
 
-  memcpy(s->pixels, img->pixels, img->w * img->h);
+  if(s->w == s->bpr)
+    memcpy(s->pixels, img->pixels, img->w * img->h);
+  else {
+    // copy line by line
+    Uint8 *src, *dst;
+    Uint8 rem;
+    Uint16 spitch, dpitch, i;
+
+    src = img->pixels;
+    dst = s->pixels;
+    spitch = img->w;
+    dpitch = s->pitch;
+    rem = s->bpr - img->w;
+    for(i = 0; i < img->h; i++){
+      // Copy row data
+      memcpy(dst, src, spitch);
+
+      // Fill in the remaining bytes with the transparent value (index 0)
+      memset(dst + spitch, 0, rem);
+
+      src += spitch;
+      dst += dpitch;
+    }
+  }
 
   return s;
 }
@@ -54,7 +92,30 @@ Surface *newSurfFromC8(C8Img *img){
   if(s == NULL)
     return NULL;
 
-  memcpy(s->pixels, img->pixels, img->w * img->h);
+  if(s->w == s->bpr)
+    memcpy(s->pixels, img->pixels, img->w * img->h);
+  else {
+    // copy line by line
+    Uint8 *src, *dst;
+    Uint8 rem;
+    Uint16 spitch, dpitch, i;
+
+    src = img->pixels;
+    dst = s->pixels;
+    spitch = img->w;
+    dpitch = s->pitch;
+    rem = s->bpr - img->w;
+    for(i = 0; i < img->h; i++){
+      // Copy row data
+      memcpy(dst, src, spitch);
+
+      // Fill in the remaining bytes with the transparent value (index 0)
+      memset(dst + spitch, 0, rem);
+
+      src += spitch;
+      dst += dpitch;
+    }    
+  }
 
   return s;
 }
@@ -68,23 +129,24 @@ void freeSurf(Surface *surf){
 }
 
 Surface *flipSurface(Surface *img){
-  int i, j, rem, h, pitch;
+  int i, j, rem, h, bpr, pitch;
   Surface *mirror;
   Uint8 *src8, *dest8;
   //Uint32 *src32, *dest32;
   int pixelsPerLine, bytesPerPixel;
 
-  mirror = newSurf(img->w, img->h, img->bytesPerPixel, 0);
+  mirror = newSurf(img->w, img->h, img->bpp, 0);
   
-  bytesPerPixel = img->bytesPerPixel;
+  bytesPerPixel = img->bpp;
   pixelsPerLine = img->w;
   h = img->h;
   pitch = img->pitch;
   
-  rem = pitch - (pixelsPerLine * bytesPerPixel);
+  rem = img->bpr - (pixelsPerLine * bytesPerPixel);
   
   switch(bytesPerPixel){
   case 1:
+    // i should rewrite this to use word copies
     for(i = 0; i < h; i++){
       src8 = img->pixels + ( (i+1) * pitch) - rem - bytesPerPixel;
       dest8 = mirror->pixels + (i * pitch);
@@ -135,7 +197,7 @@ void bltSurface(Surface *src, Rect *srcr, Surface *dst, Rect *dstr){
   Uint8 *line;
   Uint16 w, h, spitch, dpitch;
 
-  w = src->w * src->bytesPerPixel;
+  w = src->bpr;
   h = src->h;
   spitch = src->pitch;
   dpitch = dst->pitch;
