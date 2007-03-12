@@ -55,7 +55,8 @@ void initGlobals(){
   G.DngView = newSurf(256, 192, 1, 512);
   G.DngView->pixels = (Uint8 *)BG_GFX;
 
-  //loadLevelGfx(wallGfx, "dungfx.txt");
+  G.WallGfx = (WallGfx*)malloc(sizeof(WallGfx));
+  loadLevelGfx(G.WallGfx, "dungfx.txt");
 
 }
 

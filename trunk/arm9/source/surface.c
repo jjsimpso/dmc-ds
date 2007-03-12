@@ -14,8 +14,10 @@ Surface *newSurf(Uint16 w, Uint16 h, Uint8 bytesPerPixel, Uint16 pitch){
   Uint8 rem;
 
   s = (Surface *)malloc(sizeof(Surface));
-  if(s == NULL)
+  if(s == NULL){
+    DEBUGF(1,("newSurf: Failed to malloc\n"));
     return NULL;
+  }
 
   s->w = w;
   s->h = h;
@@ -39,13 +41,13 @@ Surface *newSurf(Uint16 w, Uint16 h, Uint8 bytesPerPixel, Uint16 pitch){
     //s->pixels = (Uint8 *)somefunc();
   }
 
-  /*
-    put this back later
   if(s->pixels == NULL){
+    DEBUGF(1,("newSurf: Failed to malloc pixels\n"));    
+    /* put this back later
     free(s);
     return NULL;
+    */
   }
-  */
 
   return s;
 }
@@ -129,7 +131,7 @@ void freeSurf(Surface *surf){
 }
 
 Surface *flipSurface(Surface *img){
-  int i, j, rem, h, bpr, pitch;
+  int i, j, rem, h, pitch;
   Surface *mirror;
   Uint8 *src8, *dest8;
   //Uint32 *src32, *dest32;
@@ -182,6 +184,11 @@ Rect *newRect(Sint16 x, Sint16 y, Uint16 w, Uint16 h){
 
   r = (Rect *) malloc(sizeof(Rect));
   
+  if(r == NULL){
+    DEBUGF(1,("newRect: Failed to malloc\n"));
+    return NULL;
+  }
+
   r->x = x;
   r->y = y;
   r->w = w;

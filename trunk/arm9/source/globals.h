@@ -12,6 +12,7 @@ typedef struct {
   GfxDat *gfxData;
   int *gfxndx;
   Surface *DngView;
+  WallGfx *WallGfx;
 } Globals;
 
 /*

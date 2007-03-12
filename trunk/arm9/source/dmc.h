@@ -20,5 +20,15 @@ typedef s32 Sint32;
 #include "data.h"
 #include "globals.h"
 
+/* debug options */
+#define DMC_DEBUG
+#define DEBUG_LEVEL 1
+#ifdef DMC_DEBUG
+#define DEBUGF(level, args) \
+    do { if (DEBUG_LEVEL >= (level)) {printf args;} } while (0)
+#else
+#define DEBUGF(level, args)     /* nothing */
+#endif
+
 
 #endif /* DMC_H_INCLUDED */

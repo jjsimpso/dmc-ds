@@ -19,9 +19,10 @@ GBFS_FD *gbfsOpen(const char *path, const char *mode){
 
 int gbfsClose(GBFS_FD *fp){
   if(fp != NULL){
+    /* Shouldn't do this, data is in ROM
     if(fp->data != NULL)
       free(fp->data);  
-
+    */
     free(fp);
   }
   return 0;
