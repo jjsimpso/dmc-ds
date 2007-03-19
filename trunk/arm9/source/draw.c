@@ -30,13 +30,14 @@ void drawTitle(){
   //C8Img *title;
   //C4Img *title;
 
+  memset((void *)BG_GFX, 43, 512*192);
 #if 0
   //title = loadC4Img(G.gfxData, G.gfxndx, 3);
   //title = loadC8Img(G.gfxData, G.gfxndx, 175, 0);
   title = loadC8Img(G.gfxData, G.gfxndx, 2167, 10);
   bitBlt8((Uint8 *)BG_GFX, title->pixels, title->w,  title->h);
 #else
-  title = loadImage(G.gfxData, G.gfxndx, 2167, 0);
+  title = loadImage(G.gfxData, G.gfxndx, 2167, 10);
   bltSurface(title, NULL, G.DngView, NULL);
 #endif
 }

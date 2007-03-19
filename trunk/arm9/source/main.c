@@ -104,7 +104,15 @@ int main()
 	initGlobals();
 
 	drawTitle();
-
+	/*
+	printf("sizeof Surface = %d\n", sizeof(Surface));
+	printf("offset w = %d\n", ((int)&G.DngView->w) - ((int)G.DngView));
+	printf("offset h = %d\n", ((int)&G.DngView->h) - ((int)G.DngView));
+	printf("offset bpr = %d\n", ((int)&G.DngView->bpr) - ((int)G.DngView));
+	printf("offset pitch = %d\n", ((int)&G.DngView->pitch) - ((int)G.DngView));
+	printf("offset bpp = %d\n", ((int)&G.DngView->bpp) - ((int)G.DngView));
+	printf("offset pixels = %d\n", ((int)&G.DngView->pixels) - ((int)G.DngView));
+	*/
 	while(1){
 	  swiWaitForVBlank();
 	  scanKeys();
