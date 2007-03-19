@@ -6,7 +6,9 @@
 
 typedef struct {
   Uint16 w, h;          // width, height
-  Uint16 bpr, pitch;    // bytes per row, pitch
+  Uint16 bpr, pitch;    // bytes per row before padding, pitch
+  Uint8 padbytes;       // # of bytes added to row to reach word boundary
+  Uint8 rem;            // # bytes after last word boundary in each row's pixel data
   Uint8 bpp;            // bytes per pixel
   Uint8 *pixels;        // pixel data
 } Surface;

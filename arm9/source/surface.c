@@ -11,7 +11,6 @@
 */
 Surface *newSurf(Uint16 w, Uint16 h, Uint8 bytesPerPixel, Uint16 pitch){
   Surface *s;
-  Uint8 rem;
 
   s = (Surface *)malloc(sizeof(Surface));
   if(s == NULL){
@@ -24,15 +23,23 @@ Surface *newSurf(Uint16 w, Uint16 h, Uint8 bytesPerPixel, Uint16 pitch){
   s->bpp = bytesPerPixel;
   s->bpr = w * bytesPerPixel;
 
+#if 1
   // Ensure that the byte width of a row falls on a word boundary
-  if((rem = s->bpr % 4))
-    s->bpr += 4 - rem;
+  if((s->rem = s->bpr % 4))
+    s->padbytes = 4 - s->rem;
+  else
+    s->padbytes = 0;
+#else
+  // Instead of forcing the byte width of a row to fall on a word
+  // boundary, save the remainder.
+  s->rem = s->bpr % 4;
+#endif
 
   // Pitch is set to either the bytes per row or a special value,
   // such as the width of a hardware surface
   if(pitch == 0){
-    s->pitch = s->bpr;
-    s->pixels = (Uint8 *)malloc(h * s->bpr);
+    s->pitch = s->bpr + s->padbytes;
+    s->pixels = (Uint8 *)malloc(h * s->pitch);
   }
   else {
     s->pitch = pitch;
@@ -59,25 +66,25 @@ Surface *newSurfFromC4(C4Img *img){
   if(s == NULL)
     return NULL;
 
-  if(s->w == s->bpr)
+  if(s->rem == 0)
     memcpy(s->pixels, img->pixels, img->w * img->h);
   else {
     // copy line by line
     Uint8 *src, *dst;
-    Uint8 rem;
+    Uint8 padbytes;
     Uint16 spitch, dpitch, i;
 
     src = img->pixels;
     dst = s->pixels;
     spitch = img->w;
     dpitch = s->pitch;
-    rem = s->bpr - img->w;
+    padbytes = s->padbytes;
     for(i = 0; i < img->h; i++){
       // Copy row data
       memcpy(dst, src, spitch);
 
       // Fill in the remaining bytes with the transparent value (index 0)
-      memset(dst + spitch, 0, rem);
+      memset(dst + spitch, 0, padbytes);
 
       src += spitch;
       dst += dpitch;
@@ -94,25 +101,25 @@ Surface *newSurfFromC8(C8Img *img){
   if(s == NULL)
     return NULL;
 
-  if(s->w == s->bpr)
+  if(s->rem == 0)
     memcpy(s->pixels, img->pixels, img->w * img->h);
   else {
     // copy line by line
     Uint8 *src, *dst;
-    Uint8 rem;
+    Uint8 padbytes;
     Uint16 spitch, dpitch, i;
 
     src = img->pixels;
     dst = s->pixels;
     spitch = img->w;
     dpitch = s->pitch;
-    rem = s->bpr - img->w;
+    padbytes = s->padbytes;
     for(i = 0; i < img->h; i++){
       // Copy row data
       memcpy(dst, src, spitch);
 
       // Fill in the remaining bytes with the transparent value (index 0)
-      memset(dst + spitch, 0, rem);
+      memset(dst + spitch, 0, padbytes);
 
       src += spitch;
       dst += dpitch;
@@ -130,6 +137,7 @@ void freeSurf(Surface *surf){
     free(surf);
 }
 
+// Need to update
 Surface *flipSurface(Surface *img){
   int i, j, rem, h, pitch;
   Surface *mirror;
@@ -201,19 +209,64 @@ Rect *newRect(Sint16 x, Sint16 y, Uint16 w, Uint16 h){
 // Doesn't yet use rects
 void bltSurface(Surface *src, Rect *srcr, Surface *dst, Rect *dstr){
   int i;
-  Uint8 *line;
-  Uint16 w, h, spitch, dpitch;
+  Uint8 rem, wpr;
+  Uint8 *src_line, *dst_line;
+  Uint16 chunksize, h, spitch, dpitch;
 
-  w = src->bpr;
-  h = src->h;
-  spitch = src->pitch;
-  dpitch = dst->pitch;
-  line = src->pixels;
+  if(srcr == NULL && dstr == NULL){
+    // copy entire src image to dst
+    
+    h = src->h;
+    rem = src->rem;
+    chunksize = src->bpr - rem;
+    wpr = chunksize / 4;
+    spitch = src->pitch;
+    dpitch = dst->pitch;
+    src_line = src->pixels;
+    dst_line = dst->pixels;
+    
+    printf("rem = %d\n", rem);
+    printf("bpr = %d\n", src->bpr);
+    printf("padbytes = %d\n", src->padbytes);
+    printf("chunksize = %d\n", chunksize);
+    printf("wpr = %d\n", wpr);
+    printf("src_line = 0x%x\n", src_line);
+    printf("dst_line = 0x%x\n", dst_line);
 
-  for(i = 0; i < h; i++){
-    //memcpy(dst->pixels, line, w);
-    swiFastCopy(line, dst->pixels, w / 4);
-    line += spitch;
-    dst->pixels += dpitch;
+    for(i = 0; i < h; i++){
+      //memcpy(dst_line, src_line, src->bpr);
+      swiFastCopy(src_line, dst_line, wpr);
+      memcpy(dst_line + chunksize, src_line + chunksize, rem);
+      src_line += spitch;
+      dst_line += dpitch;
+    }
+    /*
+    printf("src[166] = %d\n", src->pixels[166]);
+    printf("src[167] = %d\n", src->pixels[167]);
+    printf("src[168] = %d\n", src->pixels[168]);
+    printf("src[169] = %d\n", src->pixels[169]);
+
+    printf("dst[166] = %d\n", dst->pixels[166]);
+    printf("dst[167] = %d\n", dst->pixels[167]);
+    printf("dst[168] = %d\n", dst->pixels[168]);
+    printf("dst[169] = %d\n", dst->pixels[169]);
+    */
+    return;
   }
+  else if(srcr == NULL){
+    // Copy src to dstr
+
+  }
+  else if(dstr == NULL){
+    // Copy srcr to dst
+
+  }
+  else{
+    // Copy srcr to dstr
+    if( (srcr->w != dstr->w) || (srcr->h != dstr->h)){
+      DEBUGF(1,("bltSurface: size error"));
+      return;
+    }
+  }
+
 }
