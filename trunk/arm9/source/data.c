@@ -94,8 +94,8 @@ int loadLevelGfx(WallGfx *walls, char *dungeon_file){
 
   file = fopen(dungeon_file, "r");
   
-  loadWallData(file, &walls->floor, &walls->flrRect[0], &walls->flrRect[1]);
-  loadWallData(file, &walls->ceiling, &walls->clngRect[0], &walls->clngRect[1]);
+  //loadWallData(file, &walls->floor, &walls->flrRect[0], &walls->flrRect[1]);
+  //loadWallData(file, &walls->ceiling, &walls->clngRect[0], &walls->clngRect[1]);
   
 #if 0  
   /* walls */
