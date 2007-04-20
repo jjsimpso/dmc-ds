@@ -6,6 +6,7 @@
 
 #include "surface.h"
 
+
 /*
   Create a new surface
 */
@@ -123,8 +124,10 @@ Surface *newSurfFromC8(C8Img *img){
 
       src += spitch;
       dst += dpitch;
-    }    
+    }
   }
+  
+  findSpans(s);
 
   return s;
 }
@@ -205,41 +208,132 @@ Rect *newRect(Sint16 x, Sint16 y, Uint16 w, Uint16 h){
   return r;
 }
 
+// Find the spans in s and save them in s->spans
+void findSpans(Surface *s){
+  int i,j;
+  int w, h, pitch;
+  Uint8 *pixel_cursor;
+  Uint8 span[10];
+  Uint8 num_spans, count, state;
+
+  w = s->w;
+  h = s->h;
+  pitch = s->pitch;
+
+  s->spans = (Uint8 **) malloc(sizeof(Uint8 *) * h);
+  
+  printf("findSpans\n");
+  printf("w = %d\n", w);
+  printf("h = %d\n", h);
+  printf("pitch = %d\n", pitch);
+  
+  for(i = 0; i < h; i++){
+    // initialize variables before reading each row
+    pixel_cursor = s->pixels + i * pitch;
+    num_spans = 0;
+    count = 0;
+    state = 1; // Start assuming there will be transparent pixels
+
+    for(j = 0; j < w; j++){
+      if(state == 0){ // currently reading visible pixels
+	if(*pixel_cursor == 0){
+	  state = 1;
+	  span[num_spans++] = count;
+	  count = 0;
+	}
+	else {
+	  count++;
+	}
+      }
+      else {
+	if(*pixel_cursor == 0){
+	  count++;
+	}
+	else {
+	  state = 0;
+	  span[num_spans++] = count;
+	  count = 0;
+	}
+      }
+      pixel_cursor++;
+    }
+    
+    // Tidy up the last span
+    span[num_spans++] = count;
+    
+    // After reading a row, allocate memory and store data in the structure
+    printf("row %d: %d spans", i, num_spans);
+    s->spans[i] = (Uint8 *)malloc(num_spans+1); // save space for terminator
+    memcpy(s->spans[i], span, num_spans);
+    s->spans[i][num_spans] = 255;               // span list terminator
+    printf(", %d ... %d\n", s->spans[i][0], s->spans[i][num_spans-1]);
+  }
+  
+  return;
+}
+
+void copyPixels(Uint8 *src_line, Uint8 *dst_line, Uint16 h, Uint16 bpr, Uint16 spitch, Uint16 dpitch){
+  int i;
+
+  for(i = 0; i < h; i++){
+    // have to use memcpy because word alignment is not
+    // guaranteed
+    memcpy(dst_line, src_line, bpr);
+    src_line += spitch;
+    dst_line += dpitch;
+  }
+
+}
+
+void copyPixelSpans(Uint8 *src_line, Uint8 *dst_line, Uint16 h, Uint16 bpr, Uint16 spitch, Uint16 dpitch,
+		    Uint8 **spans){
+  int i, j;
+  int state;
+  Uint8 *src, *dst;
+
+  for(i = 0; i < h; i++){
+    state = 1;
+    src = src_line;
+    dst = dst_line;
+
+    for(j = 0; spans[i][j] != 255; j++){
+      if(state == 1){
+	src += spans[i][j];
+	dst += spans[i][j];
+	state = 0;
+      }
+      else{
+	memcpy(dst, src, spans[i][j]);
+	src += spans[i][j];
+	dst += spans[i][j];
+	state = 1;
+      }
+    }
+
+    src_line += spitch;
+    dst_line += dpitch;
+  }
+
+}
+
 // General bitblt function
 // Doesn't yet use rects
 void bltSurface(Surface *src, Rect *srcr, Surface *dst, Rect *dstr){
   int i;
-  Uint8 rem, wpr;
   Uint8 *src_line, *dst_line;
-  Uint16 chunksize, h, spitch, dpitch;
+  Uint16 h, spitch, dpitch;
 
   if(srcr == NULL && dstr == NULL){
     // copy entire src image to dst
+    //copyPixels(src->pixels, dst->pixels, src->h, src->bpr, src->pitch, dst->pitch);
+    copyPixelSpans(src->pixels, dst->pixels, src->h, src->bpr, src->pitch, dst->pitch, src->spans);
     
-    h = src->h;
-    rem = src->rem;
-    chunksize = src->bpr - rem;
-    wpr = chunksize / 4;
-    spitch = src->pitch;
-    dpitch = dst->pitch;
-    src_line = src->pixels;
-    dst_line = dst->pixels;
-    
-    printf("rem = %d\n", rem);
     printf("bpr = %d\n", src->bpr);
     printf("padbytes = %d\n", src->padbytes);
-    printf("chunksize = %d\n", chunksize);
-    printf("wpr = %d\n", wpr);
+    printf("rem = %d\n", src->rem);
     printf("src_line = 0x%x\n", src_line);
     printf("dst_line = 0x%x\n", dst_line);
 
-    for(i = 0; i < h; i++){
-      //memcpy(dst_line, src_line, src->bpr);
-      swiFastCopy(src_line, dst_line, wpr);
-      memcpy(dst_line + chunksize, src_line + chunksize, rem);
-      src_line += spitch;
-      dst_line += dpitch;
-    }
     /*
     printf("src[166] = %d\n", src->pixels[166]);
     printf("src[167] = %d\n", src->pixels[167]);

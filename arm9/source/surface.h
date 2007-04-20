@@ -10,6 +10,7 @@ typedef struct {
   Uint8 padbytes;       // # of bytes added to row to reach word boundary
   Uint8 rem;            // # bytes after last word boundary in each row's pixel data
   Uint8 bpp;            // bytes per pixel
+  Uint8 **spans;        //
   Uint8 *pixels;        // pixel data
 } Surface;
 
