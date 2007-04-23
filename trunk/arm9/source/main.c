@@ -47,12 +47,12 @@ void initGlobals(){
     fprintf(stderr, "Error loading graphics.ndx file %s\n", "graphics.ndx");
     exit(1);
   }
-	
+  
   /* Load DM2 palette */
   copyPal24(DefaultPalette, BG_PALETTE, 0, 256);
 
   /* Init graphics surface */
-  G.DngView = newSurf(256, 192, 1, 512);
+  G.DngView = newSurf(256, 192, 1, 512, 0);
   G.DngView->pixels = (Uint8 *)BG_GFX;
 
   G.WallGfx = (WallGfx*)malloc(sizeof(WallGfx));
@@ -103,7 +103,7 @@ int main()
 
 	initGlobals();
 
-	drawTitle();
+	drawTest();
 	/*
 	printf("sizeof Surface = %d\n", sizeof(Surface));
 	printf("offset w = %d\n", ((int)&G.DngView->w) - ((int)G.DngView));

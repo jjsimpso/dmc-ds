@@ -27,17 +27,24 @@ void bitBlt8(Uint8 *dest, Uint8 *src, int w, int h){
 
 void drawTitle(){
   Surface *title;
+
+  title = loadImage(G.gfxData, G.gfxndx, 175, 0);
+  bltSurface(title, NULL, G.DngView, NULL);
+}
+
+void drawTest(){
+#if 0
   //C8Img *title;
   //C4Img *title;
 
-  memset((void *)BG_GFX, 43, 512*192);
-#if 0
   //title = loadC4Img(G.gfxData, G.gfxndx, 3);
   //title = loadC8Img(G.gfxData, G.gfxndx, 175, 0);
   title = loadC8Img(G.gfxData, G.gfxndx, 2167, 10);
   bitBlt8((Uint8 *)BG_GFX, title->pixels, title->w,  title->h);
 #else
-  title = loadImage(G.gfxData, G.gfxndx, 2167, 10);
-  bltSurface(title, NULL, G.DngView, NULL);
+  memset((void *)BG_GFX, 43, 512*192);
+
+  bltSurface(G.WallGfx->floor, G.WallGfx->flrRect[0], G.DngView, G.WallGfx->flrRect[1]);
+  bltSurface(G.WallGfx->ceiling, G.WallGfx->clngRect[0], G.DngView, G.WallGfx->clngRect[1]);
 #endif
 }

@@ -10,6 +10,7 @@ typedef struct {
   Uint8 padbytes;       // # of bytes added to row to reach word boundary
   Uint8 rem;            // # bytes after last word boundary in each row's pixel data
   Uint8 bpp;            // bytes per pixel
+  Uint8 alphaColor;     //
   Uint8 **spans;        //
   Uint8 *pixels;        // pixel data
 } Surface;
@@ -21,9 +22,9 @@ typedef struct {
 
 
 /* Prototypes */
-Surface *newSurf(Uint16 w, Uint16 h, Uint8 bytesPerPixel, Uint16 pitch);
-Surface *newSurfFromC4(C4Img *img);
-Surface *newSurfFromC8(C8Img *img);
+Surface *newSurf(Uint16 w, Uint16 h, Uint8 bytesPerPixel, Uint16 pitch, Uint8 alphaColor);
+Surface *newSurfFromC4(C4Img *img, Uint8 alphaColor);
+Surface *newSurfFromC8(C8Img *img, Uint8 alphaColor);
 void freeSurf(Surface *surf);
 
 Rect *newRect(Sint16 x, Sint16 y, Uint16 w, Uint16 h);

@@ -19,7 +19,7 @@ Surface* loadImage(GfxDat *gfxData, int *gfxndx, int file_num, Uint8 alphaColor)
     return NULL;
   }
 
-  s = newSurfFromC8(img);
+  s = newSurfFromC8(img, alphaColor);
 
   freeC8Img(img);
 
@@ -47,12 +47,12 @@ Surface* loadDungeonImage(GfxDat *gfxData, int *gfxndx, char *imgname, Uint8 alp
   }
 
   if(imgname[0] == '*'){
-    temp = newSurfFromC8(img);
+    temp = newSurfFromC8(img, alphaColor);
     s = flipSurface(temp);
     freeSurf(temp);
   }
   else {
-    s = newSurfFromC8(img);
+    s = newSurfFromC8(img, alphaColor);
   }
 
   freeC8Img(img);
@@ -69,19 +69,22 @@ int loadWallData(FILE *in, Surface **surf, Rect **src, Rect **dst){
   int dx, dy, dw, dh;
   int clr_color;
 
-  fgets(line, 254, in);
+  fgets(line, 256, in);
   conv = sscanf(line, "%s %s %d %d %d %d %d %d %d %d %d\n", object, imgname, 
 		&sx, &sy, &sw, &sh, &dx, &dy, &dw, &dh, &clr_color);
 
+  printf("read %s\n", imgname);
+  printf("%d %d %d %d %d %d %d %d %d\n",sx, sy, sw, sh, dx, dy, dw, dh, clr_color);
+
   if(conv == 11){
     *surf = loadDungeonImage(G.gfxData, G.gfxndx, imgname, clr_color);
-
+    
     *src = newRect(sx, sy, sw, sh);
     *dst = newRect(dx, dy, dw, dh);
   }
   else{
     *surf = NULL;
-    printf("bad line, conv = %d\n", conv);
+    DEBUGF(1,("bad line, conv = %d\n", conv));
     return -1;
   }
 
@@ -94,14 +97,14 @@ int loadLevelGfx(WallGfx *walls, char *dungeon_file){
 
   file = fopen(dungeon_file, "r");
   
-  //loadWallData(file, &walls->floor, &walls->flrRect[0], &walls->flrRect[1]);
-  //loadWallData(file, &walls->ceiling, &walls->clngRect[0], &walls->clngRect[1]);
+  loadWallData(file, &walls->floor, &walls->flrRect[0], &walls->flrRect[1]);
+  loadWallData(file, &walls->ceiling, &walls->clngRect[0], &walls->clngRect[1]);
   
-#if 0  
+#if 0
   /* walls */
   for(i = 0; i < NUM_CELLS; i++){
     loadWallData(file, &walls->cell[i], &walls->cellRect[i][0], &walls->cellRect[i][1]);
-    }
+  }
 
   /* up stairs */
   for(i = 0; i < NUM_CELLS; i++){
