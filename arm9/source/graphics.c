@@ -6,6 +6,10 @@
 
 #include "graphics.h"
 
+// This flag is not currently supported by the code
+// in other .c files.
+//#define TRANSFORM_ALPHA_COLOR
+
 
 GfxDat *readGfxDat(char *filename){
   FILE *gfile;
@@ -288,6 +292,7 @@ static Uint8 *procProjectCom(Uint16 command, Uint8 *off, int ctype){
      be switched to index 0.  Pixels that already are set to zero will not be drawn,
      but thankfully, they seem to be very rare in the DM2 images I have looked at.  If
      there is no transparent color, then alphaColor should be set to 0.
+     (behaviour controlled by #define TRANSFORM_ALPHA_COLOR)
 */
 C8Img *loadC8Img(GfxDat *gfxdat, int *gfxndx, int file_num, Uint8 alphaColor){
   int offset, tmp, i, numpix;
@@ -326,7 +331,9 @@ C8Img *loadC8Img(GfxDat *gfxdat, int *gfxndx, int file_num, Uint8 alphaColor){
     for(i = 0; ((i < 8) && ((pixoff - img->pixels) < numpix)); i++){
       if(control & 0x1){
 	fread(&pixel, 1, 1, gfile);
+#ifdef TRANSFORM_ALPHA_COLOR
 	if(pixel == alphaColor) pixel = 0;
+#endif
 	pixoff = procPixelCom(pixel, pixoff);
       }
       else{

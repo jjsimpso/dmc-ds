@@ -10,7 +10,7 @@
 /*
   Create a new surface
 */
-Surface *newSurf(Uint16 w, Uint16 h, Uint8 bytesPerPixel, Uint16 pitch){
+Surface *newSurf(Uint16 w, Uint16 h, Uint8 bytesPerPixel, Uint16 pitch, Uint8 alphaColor){
   Surface *s;
 
   s = (Surface *)malloc(sizeof(Surface));
@@ -23,6 +23,7 @@ Surface *newSurf(Uint16 w, Uint16 h, Uint8 bytesPerPixel, Uint16 pitch){
   s->h = h;
   s->bpp = bytesPerPixel;
   s->bpr = w * bytesPerPixel;
+  s->alphaColor = alphaColor;
 
 #if 1
   // Ensure that the byte width of a row falls on a word boundary
@@ -60,10 +61,13 @@ Surface *newSurf(Uint16 w, Uint16 h, Uint8 bytesPerPixel, Uint16 pitch){
   return s;
 }
 
-Surface *newSurfFromC4(C4Img *img){
+// Creates a surface from a C4 image.
+// if alphaColor == 0, then there isn't a transparent color in the original 
+//   C4 image.  Function is currently ignoring alphaColor.
+Surface *newSurfFromC4(C4Img *img, Uint8 alphaColor){
   Surface *s;
 
-  s = newSurf(img->w, img->h, 1, 0);
+  s = newSurf(img->w, img->h, 1, 0, alphaColor);
   if(s == NULL)
     return NULL;
 
@@ -95,10 +99,13 @@ Surface *newSurfFromC4(C4Img *img){
   return s;
 }
 
-Surface *newSurfFromC8(C8Img *img){
+// Creates a surface from a C8 image.
+// if alphaColor == 0, then there isn't a transparent color in the original 
+//   C8 image
+Surface *newSurfFromC8(C8Img *img, Uint8 alphaColor){
   Surface *s;
 
-  s = newSurf(img->w, img->h, 1, 0);
+  s = newSurf(img->w, img->h, 1, 0, alphaColor);
   if(s == NULL)
     return NULL;
 
@@ -127,7 +134,10 @@ Surface *newSurfFromC8(C8Img *img){
     }
   }
   
-  findSpans(s);
+  if(alphaColor == 0) 
+    s->spans = NULL;
+  else
+    findSpans(s);
 
   return s;
 }
@@ -148,7 +158,7 @@ Surface *flipSurface(Surface *img){
   //Uint32 *src32, *dest32;
   int pixelsPerLine, bytesPerPixel;
 
-  mirror = newSurf(img->w, img->h, img->bpp, 0);
+  mirror = newSurf(img->w, img->h, img->bpp, img->pitch, img->alphaColor);
   
   bytesPerPixel = img->bpp;
   pixelsPerLine = img->w;
@@ -214,18 +224,14 @@ void findSpans(Surface *s){
   int w, h, pitch;
   Uint8 *pixel_cursor;
   Uint8 span[10];
-  Uint8 num_spans, count, state;
+  Uint8 num_spans, count, state, alphaColor;
 
   w = s->w;
   h = s->h;
   pitch = s->pitch;
+  alphaColor = s->alphaColor;
 
   s->spans = (Uint8 **) malloc(sizeof(Uint8 *) * h);
-  
-  printf("findSpans\n");
-  printf("w = %d\n", w);
-  printf("h = %d\n", h);
-  printf("pitch = %d\n", pitch);
   
   for(i = 0; i < h; i++){
     // initialize variables before reading each row
@@ -236,7 +242,7 @@ void findSpans(Surface *s){
 
     for(j = 0; j < w; j++){
       if(state == 0){ // currently reading visible pixels
-	if(*pixel_cursor == 0){
+	if(*pixel_cursor == alphaColor){
 	  state = 1;
 	  span[num_spans++] = count;
 	  count = 0;
@@ -246,7 +252,7 @@ void findSpans(Surface *s){
 	}
       }
       else {
-	if(*pixel_cursor == 0){
+	if(*pixel_cursor == alphaColor){
 	  count++;
 	}
 	else {
@@ -262,11 +268,11 @@ void findSpans(Surface *s){
     span[num_spans++] = count;
     
     // After reading a row, allocate memory and store data in the structure
-    printf("row %d: %d spans", i, num_spans);
+    DEBUGF(2,("row %d: %d spans", i, num_spans));
     s->spans[i] = (Uint8 *)malloc(num_spans+1); // save space for terminator
     memcpy(s->spans[i], span, num_spans);
     s->spans[i][num_spans] = 255;               // span list terminator
-    printf(", %d ... %d\n", s->spans[i][0], s->spans[i][num_spans-1]);
+    DEBUGF(2,(", %d ... %d\n", s->spans[i][0], s->spans[i][num_spans-1]));
   }
   
   return;
@@ -325,14 +331,14 @@ void bltSurface(Surface *src, Rect *srcr, Surface *dst, Rect *dstr){
 
   if(srcr == NULL && dstr == NULL){
     // copy entire src image to dst
-    //copyPixels(src->pixels, dst->pixels, src->h, src->bpr, src->pitch, dst->pitch);
-    copyPixelSpans(src->pixels, dst->pixels, src->h, src->bpr, src->pitch, dst->pitch, src->spans);
+    if(src->alphaColor)
+      copyPixelSpans(src->pixels, dst->pixels, src->h, src->bpr, src->pitch, dst->pitch, src->spans);
+    else
+      copyPixels(src->pixels, dst->pixels, src->h, src->bpr, src->pitch, dst->pitch);
     
     printf("bpr = %d\n", src->bpr);
     printf("padbytes = %d\n", src->padbytes);
     printf("rem = %d\n", src->rem);
-    printf("src_line = 0x%x\n", src_line);
-    printf("dst_line = 0x%x\n", dst_line);
 
     /*
     printf("src[166] = %d\n", src->pixels[166]);
@@ -357,10 +363,31 @@ void bltSurface(Surface *src, Rect *srcr, Surface *dst, Rect *dstr){
   }
   else{
     // Copy srcr to dstr
+    Uint8 *src_start, *dst_start;
+    Uint16 bpr, h;
+    
+    printf("(%d,%d) to (%d,%d)\n", srcr->x, srcr->y, dstr->x, dstr->y);
+
+    // Check dimensions (no scaling)
     if( (srcr->w != dstr->w) || (srcr->h != dstr->h)){
       DEBUGF(1,("bltSurface: size error"));
       return;
     }
+    
+    bpr = srcr->w * src->bpp;
+    h = srcr->h;
+    src_start = src->pixels + (srcr->y * src->pitch) + (srcr->x * src->bpp);
+    dst_start = dst->pixels + (dstr->y * dst->pitch) + (dstr->x * dst->bpp);
+    
+    printf("dst->pixels = 0x%x\n", dst->pixels);
+    printf("dst_start = 0x%x\n", dst_start);
+    printf("alphaColor = %d\n", src->alphaColor);
+
+    if(src->alphaColor)
+      copyPixelSpans(src->pixels, dst->pixels, src->h, src->bpr, src->pitch, dst->pitch, src->spans);
+    else
+      copyPixels(src_start, dst_start, h, bpr, src->pitch, dst->pitch);
+    
   }
 
 }

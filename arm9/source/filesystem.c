@@ -58,8 +58,27 @@ int gbfsTell(FILE *stream){
   return stream->pos;
 }
 
+// Still doesn't handle EOF
 char *gbfsGets(char *s, int size, FILE *stream){
-  strncpy(s, stream->data, size);
-  s[255] = 0;
+  char *cursor;
+  int i;
+
+  cursor = stream->data + stream->pos;
+
+  for(i = 0; i < size-1; i++, cursor++){
+    if(*cursor == '\n'){
+      s[i++] = '\n';
+      s[i] = 0;
+      stream->pos += i;
+      return s;
+    }
+    else {
+      s[i] = *cursor;
+    }
+  }
+
+  s[i] = 0;
+  stream->pos += i;
+
   return s;
 }
