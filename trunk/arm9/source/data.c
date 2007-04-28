@@ -100,12 +100,12 @@ int loadLevelGfx(WallGfx *walls, char *dungeon_file){
   loadWallData(file, &walls->floor, &walls->flrRect[0], &walls->flrRect[1]);
   loadWallData(file, &walls->ceiling, &walls->clngRect[0], &walls->clngRect[1]);
   
-#if 0
   /* walls */
   for(i = 0; i < NUM_CELLS; i++){
     loadWallData(file, &walls->cell[i], &walls->cellRect[i][0], &walls->cellRect[i][1]);
   }
 
+#if 0
   /* up stairs */
   for(i = 0; i < NUM_CELLS; i++){
     loadWallData(file, &up_stairs->cell[i], &up_stairs->cellRect[i][0], &up_stairs->cellRect[i][1]);

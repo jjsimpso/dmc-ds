@@ -6,6 +6,17 @@
 
 #include "surface.h"
 
+// Defines for span algorithm
+#define SPAN_STATE_OPAQUE  0
+#define SPAN_STATE_TRANS   1
+#define SPAN_STATE_SKIP_TRANS   2
+#define SPAN_STATE_SKIP_OPAQUE   3
+
+// Static functions
+static void findSpans(Surface *s);
+static void copyPixels(Uint8 *src_line, Uint8 *dst_line, Uint16 h, Uint16 bpr, Uint16 spitch, Uint16 dpitch);
+static void copyPixelSpans(Uint8 *src_line, Uint8 *dst_line, Uint16 h, Uint16 bpr, Uint16 spitch, Uint16 dpitch,
+			   Uint8 **spans, Uint16 x_offset);
 
 /*
   Create a new surface
@@ -219,11 +230,11 @@ Rect *newRect(Sint16 x, Sint16 y, Uint16 w, Uint16 h){
 }
 
 // Find the spans in s and save them in s->spans
-void findSpans(Surface *s){
+static void findSpans(Surface *s){
   int i,j;
   int w, h, pitch;
   Uint8 *pixel_cursor;
-  Uint8 span[10];
+  Uint8 span[20];
   Uint8 num_spans, count, state, alphaColor;
 
   w = s->w;
@@ -243,9 +254,9 @@ void findSpans(Surface *s){
     for(j = 0; j < w; j++){
       if(state == 0){ // currently reading visible pixels
 	if(*pixel_cursor == alphaColor){
-	  state = 1;
 	  span[num_spans++] = count;
-	  count = 0;
+	  state = 1;
+	  count = 1;
 	}
 	else {
 	  count++;
@@ -256,9 +267,9 @@ void findSpans(Surface *s){
 	  count++;
 	}
 	else {
-	  state = 0;
 	  span[num_spans++] = count;
-	  count = 0;
+	  state = 0;
+	  count = 1;
 	}
       }
       pixel_cursor++;
@@ -268,17 +279,17 @@ void findSpans(Surface *s){
     span[num_spans++] = count;
     
     // After reading a row, allocate memory and store data in the structure
-    DEBUGF(2,("row %d: %d spans", i, num_spans));
+    if(i < 5) DEBUGF(1,("row %d: %d spans", i, num_spans));
     s->spans[i] = (Uint8 *)malloc(num_spans+1); // save space for terminator
     memcpy(s->spans[i], span, num_spans);
     s->spans[i][num_spans] = 255;               // span list terminator
-    DEBUGF(2,(", %d ... %d\n", s->spans[i][0], s->spans[i][num_spans-1]));
+    if(i < 5) DEBUGF(1,(", %d ... %d\n", s->spans[i][0], s->spans[i][num_spans-1]));
   }
   
   return;
 }
 
-void copyPixels(Uint8 *src_line, Uint8 *dst_line, Uint16 h, Uint16 bpr, Uint16 spitch, Uint16 dpitch){
+static void copyPixels(Uint8 *src_line, Uint8 *dst_line, Uint16 h, Uint16 bpr, Uint16 spitch, Uint16 dpitch){
   int i;
 
   for(i = 0; i < h; i++){
@@ -291,14 +302,19 @@ void copyPixels(Uint8 *src_line, Uint8 *dst_line, Uint16 h, Uint16 bpr, Uint16 s
 
 }
 
-void copyPixelSpans(Uint8 *src_line, Uint8 *dst_line, Uint16 h, Uint16 bpr, Uint16 spitch, Uint16 dpitch,
-		    Uint8 **spans){
+static void copyPixelSpans(Uint8 *src_line, Uint8 *dst_line, Uint16 h, Uint16 bpr, Uint16 spitch, Uint16 dpitch,
+		    Uint8 **spans, Uint16 x_offset){
   int i, j;
   int state;
   Uint8 *src, *dst;
 
+  printf("x_offset = %d\n", x_offset);
+
   for(i = 0; i < h; i++){
-    state = 1;
+    if(x_offset) 
+      state = 2;       // skip spans until we reach the offset
+    else
+      state = 1;       // first span is transparent
     src = src_line;
     dst = dst_line;
 
@@ -308,12 +324,34 @@ void copyPixelSpans(Uint8 *src_line, Uint8 *dst_line, Uint16 h, Uint16 bpr, Uint
 	dst += spans[i][j];
 	state = 0;
       }
-      else{
+      else if(state == 0){
 	memcpy(dst, src, spans[i][j]);
 	src += spans[i][j];
 	dst += spans[i][j];
 	state = 1;
       }
+      else{
+	if(spans[i][j] < x_offset){
+	  if(state == 2) 
+	    state = 3;  // skipping opaque
+	  else
+	    state = 2;  // skipping transparent
+	}
+	else{
+	  if(state == 2){
+	    src += spans[i][j] - x_offset;
+	    dst += spans[i][j] - x_offset;
+	    state = 0;
+	  }
+	  else{
+	    memcpy(dst, src, spans[i][j] - x_offset);
+	    src += spans[i][j] - x_offset;
+	    dst += spans[i][j] - x_offset;
+	    state = 1;
+	  }
+	}
+      }
+
     }
 
     src_line += spitch;
@@ -332,7 +370,7 @@ void bltSurface(Surface *src, Rect *srcr, Surface *dst, Rect *dstr){
   if(srcr == NULL && dstr == NULL){
     // copy entire src image to dst
     if(src->alphaColor)
-      copyPixelSpans(src->pixels, dst->pixels, src->h, src->bpr, src->pitch, dst->pitch, src->spans);
+      copyPixelSpans(src->pixels, dst->pixels, src->h, src->bpr, src->pitch, dst->pitch, src->spans, 0);
     else
       copyPixels(src->pixels, dst->pixels, src->h, src->bpr, src->pitch, dst->pitch);
     
@@ -384,7 +422,7 @@ void bltSurface(Surface *src, Rect *srcr, Surface *dst, Rect *dstr){
     printf("alphaColor = %d\n", src->alphaColor);
 
     if(src->alphaColor)
-      copyPixelSpans(src->pixels, dst->pixels, src->h, src->bpr, src->pitch, dst->pitch, src->spans);
+      copyPixelSpans(src_start, dst_start, h, bpr, src->pitch, dst->pitch, &(src->spans[srcr->y]), srcr->x);
     else
       copyPixels(src_start, dst_start, h, bpr, src->pitch, dst->pitch);
     

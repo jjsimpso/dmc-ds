@@ -33,6 +33,7 @@ void drawTitle(){
 }
 
 void drawTest(){
+  Surface *img;
 #if 0
   //C8Img *title;
   //C4Img *title;
@@ -46,5 +47,8 @@ void drawTest(){
 
   bltSurface(G.WallGfx->floor, G.WallGfx->flrRect[0], G.DngView, G.WallGfx->flrRect[1]);
   bltSurface(G.WallGfx->ceiling, G.WallGfx->clngRect[0], G.DngView, G.WallGfx->clngRect[1]);
+  bltSurface(G.WallGfx->cell[19], G.WallGfx->cellRect[19][0], G.DngView, G.WallGfx->cellRect[19][1]);
+  //img = loadImage(G.gfxData, G.gfxndx, 2167, 10);
+  //bltSurface(img, NULL, G.DngView, NULL);
 #endif
 }
