@@ -345,11 +345,6 @@ C8Img *loadC8Img(GfxDat *gfxdat, int *gfxndx, int file_num, Uint8 alphaColor){
     }
   }
   
-  fprintf(stdout, "off = %d\n", offset);
-  fprintf(stdout, "w = %d\n", img->w);
-  fprintf(stdout, "h = %d\n", img->h);
-  fprintf(stdout, "numpixels = %d\n", pixoff - img->pixels);
-
   return img;
 }
 

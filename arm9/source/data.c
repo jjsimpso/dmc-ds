@@ -78,6 +78,8 @@ int loadWallData(FILE *in, Surface **surf, Rect **src, Rect **dst){
 
   if(conv == 11){
     *surf = loadDungeonImage(G.gfxData, G.gfxndx, imgname, clr_color);
+    if(*surf == NULL) 
+      DEBUGF(1,("Failed to load %s\n", imgname));
     
     *src = newRect(sx, sy, sw, sh);
     *dst = newRect(dx, dy, dw, dh);
