@@ -21,7 +21,7 @@ static void copyPixelSpans(Uint8 *src_line, Uint8 *dst_line, Uint16 h, Uint16 bp
 /*
   Create a new surface
 */
-Surface *newSurf(Uint16 w, Uint16 h, Uint8 bytesPerPixel, Uint16 pitch, Uint8 alphaColor){
+Surface *newSurf(Uint16 w, Uint16 h, Uint8 bytesPerPixel, Uint8 alphaColor){
   Surface *s;
 
   s = (Surface *)malloc(sizeof(Surface));
@@ -50,16 +50,8 @@ Surface *newSurf(Uint16 w, Uint16 h, Uint8 bytesPerPixel, Uint16 pitch, Uint8 al
 
   // Pitch is set to either the bytes per row or a special value,
   // such as the width of a hardware surface
-  if(pitch == 0){
-    s->pitch = s->bpr + s->padbytes;
-    s->pixels = (Uint8 *)malloc(h * s->pitch);
-  }
-  else {
-    s->pitch = pitch;
-    printf("shouldn't be here\n");
-    // place image on a hardware surface
-    //s->pixels = (Uint8 *)somefunc();
-  }
+  s->pitch = s->bpr + s->padbytes;
+  s->pixels = (Uint8 *)malloc(h * s->pitch);
 
   if(s->pixels == NULL){
     DEBUGF(1,("newSurf: Failed to malloc pixels\n"));    
@@ -72,8 +64,32 @@ Surface *newSurf(Uint16 w, Uint16 h, Uint8 bytesPerPixel, Uint16 pitch, Uint8 al
   return s;
 }
 
-Surface *newHWSurf(Uint16 w, Uint16 h, Uint8 bytesPerPixel, Uint16 pitch){
+Surface *newHWSurf(Uint16 w, Uint16 h, Uint8 bytesPerPixel, Uint16 pitch, Uint8 *data){
+  Surface *s;
 
+  s = (Surface *)malloc(sizeof(Surface));
+  if(s == NULL){
+    DEBUGF(1,("newSurf: Failed to malloc\n"));
+    return NULL;
+  }
+
+  s->w = w;
+  s->h = h;
+  s->bpp = bytesPerPixel;
+  s->bpr = w * bytesPerPixel;
+
+  // Ensure that the byte width of a row falls on a word boundary
+  if(s->bpr % 4){
+    DEBUGF(1,("newHWSurf: rows must be aligned\n"));
+    return NULL;
+  }
+  s->rem = 0;
+  s->padbytes = 0;
+
+  s->pitch = pitch;
+  s->pixels = data;
+
+  return s;
 }
 
 // Creates a surface from a C4 image.
@@ -82,7 +98,7 @@ Surface *newHWSurf(Uint16 w, Uint16 h, Uint8 bytesPerPixel, Uint16 pitch){
 Surface *newSurfFromC4(C4Img *img, Uint8 alphaColor){
   Surface *s;
 
-  s = newSurf(img->w, img->h, 1, 0, alphaColor);
+  s = newSurf(img->w, img->h, 1, alphaColor);
   if(s == NULL)
     return NULL;
 
@@ -120,7 +136,7 @@ Surface *newSurfFromC4(C4Img *img, Uint8 alphaColor){
 Surface *newSurfFromC8(C8Img *img, Uint8 alphaColor){
   Surface *s;
 
-  s = newSurf(img->w, img->h, 1, 0, alphaColor);
+  s = newSurf(img->w, img->h, 1, alphaColor);
   if(s == NULL)
     return NULL;
 
@@ -174,7 +190,7 @@ Surface *flipSurface(Surface *img){
   //Uint32 *src32, *dest32;
   int pixelsPerLine, bytesPerPixel;
 
-  mirror = newSurf(img->w, img->h, img->bpp, 0, img->alphaColor);
+  mirror = newSurf(img->w, img->h, img->bpp, img->alphaColor);
   
   bytesPerPixel = img->bpp;
   pixelsPerLine = img->w;
@@ -374,9 +390,6 @@ static void copyPixelSpans(Uint8 *src_line, Uint8 *dst_line, Uint16 h, Uint16 bp
 
 // General bitblt function
 void bltSurface(Surface *src, Rect *srcr, Surface *dst, Rect *dstr){
-  int i;
-  Uint8 *src_line, *dst_line;
-  Uint16 h, spitch, dpitch;
 
   if(srcr == NULL && dstr == NULL){
     // copy entire src image to dst

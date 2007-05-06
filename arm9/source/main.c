@@ -50,14 +50,54 @@ void initGlobals(){
   
   /* Load DM2 palette */
   copyPal24(DefaultPalette, BG_PALETTE, 0, 256);
-
+  
   /* Init graphics surface */
-  G.DngView = newSurf(256, 192, 1, 512, 0);
-  G.DngView->pixels = (Uint8 *)BG_GFX;
-
+  G.DngView = newHWSurf(256, 192, 1, 256, (Uint8 *)(BG_GFX + 256 * 256));
+  
+  /* Set up front buffer */
+  G.DVFrontBuffer = (Uint8*)BG_GFX;
+  
   G.WallGfx = (WallGfx*)malloc(sizeof(WallGfx));
   loadLevelGfx(G.WallGfx, "dungfx.txt");
+  
+  G.curMap = 0;
+  G.x = 4; //dngGetStartX(G.dungeonData);
+  G.y = 15; //dngGetStartY(G.dungeonData);
+  G.facing = dngGetStartFacing(G.dungeonData);
 
+}
+
+int handleKeyEvents(){
+  scanKeys();
+ 
+  if(keysDown() & KEY_LEFT){
+    //turnLeft();
+    printf("Pressed Left\n");
+  }
+  else if(keysDown() & KEY_RIGHT){
+    //turnRight();
+    printf("Pressed Right\n");
+  }
+  else if(keysDown() & KEY_UP){
+    //stepForward();
+    printf("Pressed Up\n");
+  }
+  else if(keysDown() & KEY_DOWN){
+    printf("Pressed Down\n");
+  }
+  
+  return 0;
+}
+
+void mainLoop(){
+  
+  while(1){
+    //drawTest();
+    drawView(G.x, G.y, G.facing, G.DngView);
+    handleKeyEvents();
+  }
+  
+  return;
 }
 
 int main()
@@ -79,7 +119,7 @@ int main()
         vramSetBankC(VRAM_C_SUB_BG_0x6200000);
 
         //BG0_CR = BG_MAP_BASE(31);
-	BG2_CR = BG_BMP8_512x256 | BG_WRAP_ON;
+	BG2_CR = BG_BMP8_256x256;
         SUB_BG1_CR = BG_MAP_BASE(31);
 	//SUB_BG3_CR = BG_BMP8_256x256 | BG_WRAP_ON;
         
@@ -87,9 +127,9 @@ int main()
         
         //consoleInit() is a lot more flexible but this gets you up and running quick
         consoleInitDefault((u16*)SCREEN_BASE_BLOCK_SUB(31), (u16*)CHAR_BASE_BLOCK_SUB(0), 16);
-
+	
 	printf("Hello World\n");
-
+	
 	// Setup rotation background
 	BG2_XDX = 1 << 8;
         BG2_XDY = 0;
@@ -97,13 +137,20 @@ int main()
         BG2_YDY = 1 << 8;
 	BG2_CY = 0;
 	BG2_CX = 0;
-
+	
 	// Map Game Cartridge memory to ARM9
 	WAIT_CR &= ~0x80;
-
+	
 	initGlobals();
-
-	drawTest();
+	
+	//drawTest();
+	printf("BG2_CR = 0x%x\n", BG2_CR);
+	printf("DngView->pixels = 0x%x\n", G.DngView->pixels);
+	printf("Front buffer = 0x%x\n", G.DVFrontBuffer);
+	drawView(G.x, G.y, G.facing, G.DngView);
+	printf("BG2_CR = 0x%x\n", BG2_CR);
+	printf("DngView->pixels = 0x%x\n", G.DngView->pixels);
+	printf("Front buffer = 0x%x\n", G.DVFrontBuffer);
 	/*
 	printf("sizeof Surface = %d\n", sizeof(Surface));
 	printf("offset w = %d\n", ((int)&G.DngView->w) - ((int)G.DngView));
@@ -113,15 +160,8 @@ int main()
 	printf("offset bpp = %d\n", ((int)&G.DngView->bpp) - ((int)G.DngView));
 	printf("offset pixels = %d\n", ((int)&G.DngView->pixels) - ((int)G.DngView));
 	*/
-	while(1){
-	  swiWaitForVBlank();
-	  scanKeys();
-	  
-	  if(keysDown() & KEY_UP) {
-	    printf("Up pressed\n");
-	  }
 
-	}
+	mainLoop();
 
 	return 0;
 }
