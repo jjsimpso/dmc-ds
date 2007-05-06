@@ -9,8 +9,8 @@
 #include <stdlib.h>
 
 #include "dmc.h"
-#include "data.h"
 #include "draw.h"
+#include "actions.h"
 
 /* Global vars */
 #include "defpal.h"                     // Default palette data
@@ -71,15 +71,15 @@ int handleKeyEvents(){
   scanKeys();
  
   if(keysDown() & KEY_LEFT){
-    //turnLeft();
+    turnLeft();
     printf("Pressed Left\n");
   }
   else if(keysDown() & KEY_RIGHT){
-    //turnRight();
+    turnRight();
     printf("Pressed Right\n");
   }
   else if(keysDown() & KEY_UP){
-    //stepForward();
+    stepForward();
     printf("Pressed Up\n");
   }
   else if(keysDown() & KEY_DOWN){
@@ -93,8 +93,8 @@ void mainLoop(){
   
   while(1){
     //drawTest();
-    drawView(G.x, G.y, G.facing, G.DngView);
     handleKeyEvents();
+    drawView(G.x, G.y, G.facing, G.DngView);
   }
   
   return;
