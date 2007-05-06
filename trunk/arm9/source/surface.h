@@ -22,7 +22,8 @@ typedef struct {
 
 
 /* Prototypes */
-Surface *newSurf(Uint16 w, Uint16 h, Uint8 bytesPerPixel, Uint16 pitch, Uint8 alphaColor);
+Surface *newSurf(Uint16 w, Uint16 h, Uint8 bytesPerPixel, Uint8 alphaColor);
+Surface *newHWSurf(Uint16 w, Uint16 h, Uint8 bytesPerPixel, Uint16 pitch, Uint8 *data);
 Surface *newSurfFromC4(C4Img *img, Uint8 alphaColor);
 Surface *newSurfFromC8(C8Img *img, Uint8 alphaColor);
 void freeSurf(Surface *surf);
