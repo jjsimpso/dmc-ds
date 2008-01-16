@@ -5,9 +5,9 @@
 I'll try to keep this updated with the tools I'm currently using.
 
 == Software ==
-[http://sourceforge.net/projects/devkitpro/ devkitARM] version r19a
+[http://sourceforge.net/projects/devkitpro/ devkitARM] version r21
 
-[http://sourceforge.net/projects/devkitpro/ libnds] version 20060601
+[http://sourceforge.net/projects/devkitpro/ libnds] version 20071023
 
 [http://if2a.free.fr/ if2a] version 0.94.4: Free software linker program for
 Flash2Advance and Flash2Advance Ultra GBA carts.
