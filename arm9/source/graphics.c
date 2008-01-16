@@ -87,7 +87,7 @@ void readFourBitPal(GfxDat *gfxdat, int *gfxndx, Uint8 *palmap){
   reads must be at least one byte.
 */
 static Uint8 readNextNibble(Uint8 *byte, int *flag, FILE *file){
-  Uint8 nibble;
+  Uint8 nibble = 0;
 
   if(*flag == 0){
     fread(byte, 1, 1, file);
