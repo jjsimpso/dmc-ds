@@ -46,7 +46,7 @@ void VblankHandler(void) {
 	uint16 but=0, x=0, y=0, xpx=0, ypx=0, z1=0, z2=0, batt=0, aux=0;
 	int t1=0, t2=0;
 	uint32 temp=0;
-	uint8 ct[sizeof(IPC->curtime)];
+	uint8 ct[sizeof(IPC->time.curtime)];
 	u32 i;
 
 	// Update the heartbeat
@@ -81,7 +81,7 @@ void VblankHandler(void) {
 	temp = touchReadTemperature(&t1, &t2);
 
 	// Update the IPC struct
-	IPC->heartbeat	= heartbeat;
+	// IPC->heartbeat	= heartbeat;
 	IPC->buttons		= but;
 	IPC->touchX			= x;
 	IPC->touchY			= y;
@@ -93,7 +93,7 @@ void VblankHandler(void) {
 	IPC->aux			= aux;
 
 	for(i=0; i<sizeof(ct); i++) {
-		IPC->curtime[i] = ct[i];
+		IPC->time.curtime[i] = ct[i];
 	}
 
 	IPC->temperature = temp;

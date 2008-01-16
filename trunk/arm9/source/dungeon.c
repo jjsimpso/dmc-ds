@@ -212,6 +212,7 @@ SPECIFIC TILE ATTRIBUTE FUNCTIONS
 /* for example */
 int doorIsOpen(Uint8 tile){
 
+  return 0;
 }
 
 
@@ -297,7 +298,7 @@ Uint8 lookupTileAhead(int x, int y, int facing, DngMapData *map) {
   Side Effects: tile is set to hold the tile data
 */
 int lookupTile(int num, int x, int y, int facing, DngMapData *map, Uint8 *tile){
-  int index, xsteps, ysteps, temp;
+  int index, xsteps=0, ysteps=0, temp;
 
   switch(num){
   case 0:

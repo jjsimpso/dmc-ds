@@ -115,8 +115,8 @@ int main()
 	videoSetMode(MODE_5_2D | DISPLAY_BG2_ACTIVE);
         videoSetModeSub(MODE_5_2D | DISPLAY_BG1_ACTIVE);// | DISPLAY_BG3_ACTIVE);
 
-	vramSetBankA(VRAM_A_MAIN_BG_0x6000000);
-        vramSetBankC(VRAM_C_SUB_BG_0x6200000);
+	vramSetBankA(VRAM_A_MAIN_BG_0x06000000);
+        vramSetBankC(VRAM_C_SUB_BG_0x06200000);
 
         //BG0_CR = BG_MAP_BASE(31);
 	BG2_CR = BG_BMP8_256x256;
@@ -139,18 +139,18 @@ int main()
 	BG2_CX = 0;
 	
 	// Map Game Cartridge memory to ARM9
-	WAIT_CR &= ~0x80;
+	REG_EXMEMCNT &= ~0x80;
 	
 	initGlobals();
 	
 	//drawTest();
 	printf("BG2_CR = 0x%x\n", BG2_CR);
-	printf("DngView->pixels = 0x%x\n", G.DngView->pixels);
-	printf("Front buffer = 0x%x\n", G.DVFrontBuffer);
+	printf("DngView->pixels = 0x%x\n", (unsigned int)G.DngView->pixels);
+	printf("Front buffer = 0x%x\n", (unsigned int)G.DVFrontBuffer);
 	drawView(G.x, G.y, G.facing, G.DngView);
 	printf("BG2_CR = 0x%x\n", BG2_CR);
-	printf("DngView->pixels = 0x%x\n", G.DngView->pixels);
-	printf("Front buffer = 0x%x\n", G.DVFrontBuffer);
+	printf("DngView->pixels = 0x%x\n", (unsigned int)G.DngView->pixels);
+	printf("Front buffer = 0x%x\n", (unsigned int)G.DVFrontBuffer);
 	/*
 	printf("sizeof Surface = %d\n", sizeof(Surface));
 	printf("offset w = %d\n", ((int)&G.DngView->w) - ((int)G.DngView));

@@ -60,7 +60,7 @@ int gbfsTell(FILE *stream){
 
 // Still doesn't handle EOF
 char *gbfsGets(char *s, int size, FILE *stream){
-  char *cursor;
+  const char *cursor;
   int i;
 
   cursor = stream->data + stream->pos;
