@@ -1,6 +1,8 @@
 #ifndef GRAPHICS_H_INCLUDED
 #define GRAPHICS_H_INCLUDED
 
+/* Size of the graphics.ndx file for DM2 graphics.dat */
+#define DM2_GFXNDX_SIZE 22500
 
 typedef struct {
   Uint16 numItems;

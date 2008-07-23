@@ -4,6 +4,8 @@
 
 #include "dmc.h"
 
+#ifdef USE_GBFS
+
 GBFS_FD *gbfsOpen(const char *path, const char *mode){
   GBFS_FD *stream;
 
@@ -82,3 +84,5 @@ char *gbfsGets(char *s, int size, FILE *stream){
 
   return s;
 }
+
+#endif /* USE_GBFS */

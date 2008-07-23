@@ -19,16 +19,11 @@ typedef struct {
   Uint16 x, y;
 } Globals;
 
-/*
-extern Uint8 DefaultPalette[256][3];
-extern DngDat *dungeonData;
-extern GfxDat *gfxData;
-extern int *gfxndx;
-*/
 extern Globals G;                      //defined in main.c
 extern  Uint8 DefaultPalette[256][3];  //defined in defpal.h
+#ifdef USE_GBFS
 extern GBFS_FILE const* gbfs_file;     //defined in main.c
-
+#endif
 
 
 

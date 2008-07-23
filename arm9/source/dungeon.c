@@ -752,7 +752,7 @@ DngDat *readDngDat(char *filename){
   int numColumns = 0;
   int i;
 
-#ifdef ARM9
+#ifdef USE_GBFS
   dfile = malloc(sizeof(GBFS_FD));
   dfile->data = gbfs_get_obj(gbfs_file, filename, NULL);
   if(dfile->data == NULL){
@@ -762,6 +762,7 @@ DngDat *readDngDat(char *filename){
 #else
   dfile = fopen(filename, "r");
   if(dfile == NULL){
+    fprintf(stderr, "Error opening %s\n", filename);
     return NULL;
   }
 #endif
