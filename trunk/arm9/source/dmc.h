@@ -3,7 +3,11 @@
 
 /* Common includes */
 #include <nds.h>			// ndslib
+#ifdef USE_GBFS
 #include <gbfs.h>			// filesystem functions
+#else
+#include <fat.h>
+#endif
 
 /* Convert SDL types to libnds types */
 typedef u8 Uint8;

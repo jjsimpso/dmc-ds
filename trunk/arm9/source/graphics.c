@@ -15,7 +15,7 @@ GfxDat *readGfxDat(char *filename){
   FILE *gfile;
   GfxDat *gfxdat;
 
-#ifdef ARM9
+#ifdef USE_GBFS
   gfile = malloc(sizeof(GBFS_FD));
   gfile->data = gbfs_get_obj(gbfs_file, filename, NULL);
   if(gfile->data == NULL){
@@ -55,7 +55,33 @@ GfxDat *readGfxDat(char *filename){
 }
 
 int *readGfxNdx(char *filename){
+#ifdef USE_GBFS
   return (int *)gbfs_get_obj(gbfs_file, filename, NULL);
+#else
+  FILE *ndx_file;
+  int *ndx_data;
+  int num_elements, num_read;
+
+  ndx_file = fopen(filename, "r");
+  if(ndx_file == NULL){
+    fprintf(stderr, "Error opening %s\n", filename);
+    return NULL;
+  }
+  
+  ndx_data = malloc(DM2_GFXNDX_SIZE);
+  if(ndx_data == NULL){
+    fprintf(stderr, "Error allocating GfxNdx array\n");
+    return NULL;
+  }
+  
+  num_elements = (DM2_GFXNDX_SIZE / 4);
+  num_read = fread(ndx_data, 4, num_elements, ndx_file);
+  if(num_read != num_elements){
+    fprintf(stderr, "Only read %d entries from GfxNdx\n", num_read);
+  }
+
+  return ndx_data;
+#endif
 }
 
 void readFourBitPal(GfxDat *gfxdat, int *gfxndx, Uint8 *palmap){

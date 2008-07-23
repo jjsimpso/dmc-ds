@@ -22,16 +22,20 @@ export PATH		:=	$(DEVKITARM)/bin:$(PATH)
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
-all: $(TARGET).ds.gba
-
-$(TARGET).ds.gba	: $(TARGET).nds
+all: $(TARGET).nds
 
 #---------------------------------------------------------------------------------
-$(TARGET).nds	:	$(TARGET).arm7 $(TARGET).arm9 data.gbfs
+$(TARGET).nds	:	$(TARGET).arm7 $(TARGET).arm9
 	ndstool	-c $(TARGET).nds -7 $(TARGET).arm7 -9 $(TARGET).arm9
-	padbin 256 $(TARGET).nds
-	cat $(TARGET).nds data.gbfs > $(TARGET).nds.tmp
-	mv $(TARGET).nds.tmp $(TARGET).nds
+
+$(TARGET).ds.gba	: $(TARGET).ds
+
+#---------------------------------------------------------------------------------
+$(TARGET).ds	:	$(TARGET).arm7 $(TARGET).arm9 data.gbfs
+	ndstool	-c $(TARGET).ds -7 $(TARGET).arm7 -9 $(TARGET).arm9
+	padbin 256 $(TARGET).ds
+	cat $(TARGET).ds data.gbfs > $(TARGET).ds.tmp
+	mv $(TARGET).ds.tmp $(TARGET).ds
 
 #---------------------------------------------------------------------------------
 $(TARGET).arm7	: arm7/$(TARGET).elf
@@ -53,4 +57,4 @@ data.gbfs :
 clean:
 	$(MAKE) -C arm9 clean
 	$(MAKE) -C arm7 clean
-	rm -f $(TARGET).ds.gba $(TARGET).nds $(TARGET).arm7 $(TARGET).arm9 data.gbfs
+	rm -f $(TARGET).ds $(TARGET).ds.gba $(TARGET).nds $(TARGET).arm7 $(TARGET).arm9 data.gbfs

@@ -7,6 +7,7 @@
 //#include <nds/arm9/trig_lut.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "dmc.h"
 #include "draw.h"
@@ -15,23 +16,32 @@
 /* Global vars */
 #include "defpal.h"                     // Default palette data
 
-/*
-DngDat *dungeonData;
-GfxDat *gfxData;
-int *gfxndx;
-*/
 Globals G;
+#ifdef USE_GBFS
 GBFS_FILE const* gbfs_file;
+#endif
 
 void initGlobals(){
+#ifdef USE_GBFS
   /* Start searching from the beginning of cartridge memory */
   gbfs_file = find_first_gbfs_file((void*)0x08000000);
+#else
+  /* Initialize libfat */
+  if(!fatInitDefault()){
+    fprintf(stderr, "Error initializing libfat\n");
+    exit(1);
+  }
+
+  /* change working directory */
+  //chdir("/home/jonathan/coding/gba-ds/dmc/data");
+  chdir("fat:/dmc");
+#endif
 
   /* Load dungeon.dat */
   G.dungeonData = readDngDat("dungeon.dat");
   if(G.dungeonData == NULL){
     fprintf(stderr, "Error loading dungeon.dat file %s\n", "dungeon.dat");
-    exit(1);    
+    exit(1);
   }
 
   /* Load graphics.dat */
@@ -40,7 +50,7 @@ void initGlobals(){
     fprintf(stderr, "Error loading graphics.dat file %s\n", "GRAPHICS.DAT");
     exit(1);    
   }
-	
+  
   /* Load graphics.ndx (really just returns the pointer to the ndx array) */
   G.gfxndx = readGfxNdx("graphics.ndx");
   if(G.gfxndx == NULL){
