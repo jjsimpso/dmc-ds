@@ -62,10 +62,8 @@ void initGlobals(){
   copyPal24(DefaultPalette, BG_PALETTE, 0, 256);
   
   /* Init graphics surface */
-  G.DngView = newHWSurf(256, 192, 1, 256, (Uint8 *)(BG_GFX + 256 * 256));
+  G.DngView = newHWSurf(256, 192, 1, 256, (Uint8 *)BG_BMP_RAM(3));
   
-  /* Set up front buffer */
-  G.DVFrontBuffer = (Uint8*)BG_GFX;
   
   G.WallGfx = (WallGfx*)malloc(sizeof(WallGfx));
   loadLevelGfx(G.WallGfx, "dungfx.txt");
@@ -120,7 +118,7 @@ int main()
 	// IRQ basic setup
 	irqInit();
 	irqSet(IRQ_VBLANK, 0);
-	irqEnable(IRQ_VBLANK);
+	//irqEnable(IRQ_VBLANK); I think this is redundant
 
 	videoSetMode(MODE_5_2D | DISPLAY_BG2_ACTIVE);
         videoSetModeSub(MODE_5_2D | DISPLAY_BG1_ACTIVE);// | DISPLAY_BG3_ACTIVE);
@@ -129,7 +127,7 @@ int main()
         vramSetBankC(VRAM_C_SUB_BG_0x06200000);
 
         //BG0_CR = BG_MAP_BASE(31);
-	BG2_CR = BG_BMP8_256x256;
+	BG2_CR = BG_BMP8_256x256 | BG_BMP_BASE(0);
         SUB_BG1_CR = BG_MAP_BASE(31);
 	//SUB_BG3_CR = BG_BMP8_256x256 | BG_WRAP_ON;
         
@@ -148,19 +146,19 @@ int main()
 	BG2_CY = 0;
 	BG2_CX = 0;
 	
+#ifdef USE_GBFS
 	// Map Game Cartridge memory to ARM9
 	REG_EXMEMCNT &= ~0x80;
+#endif
 	
 	initGlobals();
 	
-	//drawTest();
 	printf("BG2_CR = 0x%x\n", BG2_CR);
 	printf("DngView->pixels = 0x%x\n", (unsigned int)G.DngView->pixels);
-	printf("Front buffer = 0x%x\n", (unsigned int)G.DVFrontBuffer);
+	//drawTest();
 	drawView(G.x, G.y, G.facing, G.DngView);
 	printf("BG2_CR = 0x%x\n", BG2_CR);
 	printf("DngView->pixels = 0x%x\n", (unsigned int)G.DngView->pixels);
-	printf("Front buffer = 0x%x\n", (unsigned int)G.DVFrontBuffer);
 	/*
 	printf("sizeof Surface = %d\n", sizeof(Surface));
 	printf("offset w = %d\n", ((int)&G.DngView->w) - ((int)G.DngView));
