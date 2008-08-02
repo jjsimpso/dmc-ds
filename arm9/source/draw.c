@@ -23,18 +23,19 @@ int findOrientation(int obj_orient, Uint8 facing){
   return 0;
 }
 
-void swapBGBuffers(Uint8 **front, Uint8 **back){
-  Uint8 *temp;
+void swapBGBuffers(Uint8 **back){
 
   swiWaitForVBlank();
-  
-  temp = *front;
-  *front = *back;
-  *back = temp;
-  
-  //flip 
-  //base is 16KB and screen size is 256x256 (128KB)
-  BG2_CR ^= BG_BMP_BASE( 128 / 16 );
+
+  if(*back == (Uint8 *)BG_BMP_RAM(0)) {
+    BG2_CR = BG_BMP8_256x256 | BG_BMP_BASE(0);
+    *back = (Uint8 *)BG_BMP_RAM(3);
+  }
+  else {
+    BG2_CR = BG_BMP8_256x256 | BG_BMP_BASE(3);
+    *back = (Uint8 *)BG_BMP_RAM(0);
+  }
+
 }
 
 void drawTitle(){
@@ -54,7 +55,9 @@ void drawTest(){
   title = loadC8Img(G.gfxData, G.gfxndx, 2167, 10);
   bitBlt8((Uint8 *)BG_GFX, title->pixels, title->w,  title->h);
 #else
-  memset((void *)BG_GFX, 43, 512*192);
+  G.DngView->pixels = BG_BMP_RAM(0);
+  BG2_CR = BG_BMP8_256x256 | BG_BMP_BASE(0);
+  memset((void *)G.DngView->pixels, 43, 256*192);
 
   bltSurface(G.WallGfx->floor, G.WallGfx->flrRect[0], G.DngView, G.WallGfx->flrRect[1]);
   bltSurface(G.WallGfx->ceiling, G.WallGfx->clngRect[0], G.DngView, G.WallGfx->clngRect[1]);
@@ -63,6 +66,8 @@ void drawTest(){
   //Surface *img;
   //img = loadImage(G.gfxData, G.gfxndx, 2165, 10);
   //bltSurface(img, G.WallGfx->cellRect[24][0], G.DngView, G.WallGfx->cellRect[24][1]);
+
+  //swapBGBuffers(&G.DngView->pixels);
 #endif
 }
 
@@ -135,7 +140,7 @@ void drawView(Uint16 x, Uint16 y, Uint8 facing, Surface *surf){
     }
   }
 
-  swapBGBuffers(&G.DVFrontBuffer, &G.DngView->pixels);
+  swapBGBuffers(&G.DngView->pixels);
 }
 
 

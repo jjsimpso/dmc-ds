@@ -12,7 +12,6 @@ typedef struct {
   GfxDat *gfxData;
   int *gfxndx;
   Surface *DngView;
-  Uint8 *DVFrontBuffer;
   WallGfx *WallGfx;
   Uint8 curMap;
   Uint8 facing;
